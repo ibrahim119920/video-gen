@@ -2,13 +2,13 @@ import bpy
 from kit import *
 
 
-def build():
+def build(n=240):
     purge()
     setup(1080, 1920, 30, 32)
     FS, FQ = fonts()
     sc = bpy.context.scene
     sc.frame_start = 1
-    sc.frame_end = 240
+    sc.frame_end = n
 
     add_world("#4A3050", 0.45)
     add_backdrop([(0.00, "#F2A55E"), (0.10, "#D9713F"),
@@ -34,9 +34,7 @@ def build():
     cam = add_cam((0, -24, 7.0), (0, 8, 9.4), 35.0)
     add_disc("sundisc", (-32.0, 120.0, 46.0), 7.0, sunm, cam)
 
-    cam.keyframe_insert("location", frame=1)
-    cam.location = (0, -21.0, 7.6)
-    cam.keyframe_insert("location", frame=240)
+    push_cam(cam, (0, -24.0, 7.0), (0, -21.0, 7.6), n)
 
     t = cam_text(cam, "hud", "SIMULASI 2027  \u00b7  ANGGARAN MBG", FS, 30, -0.42, 0.435, hud, 1.2, 1.35, "LEFT")
     fit(t, cam, 1.2, 0.86)

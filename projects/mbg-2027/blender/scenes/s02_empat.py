@@ -4,13 +4,13 @@ import bpy
 from kit import *
 
 
-def build():
+def build(n=210):
     purge()
     setup(1080, 1920, 30, 32)
     FS, FQ = fonts()
     sc = bpy.context.scene
-    sc.frame_start = 241
-    sc.frame_end = 450
+    sc.frame_start = 1
+    sc.frame_end = n
 
     add_world("#6FA8CC", 0.45)
     add_backdrop([(0.00, "#DDEFF5"), (0.20, "#A9D2E4"),
@@ -66,9 +66,9 @@ def build():
         o.matrix_parent_inverse.identity()
 
     rig.rotation_euler = (0, 0, math.radians(-1.5))
-    rig.keyframe_insert("rotation_euler", frame=241)
+    rig.keyframe_insert("rotation_euler", frame=1)
     rig.rotation_euler = (0, 0, math.radians(1.5))
-    rig.keyframe_insert("rotation_euler", frame=450)
+    rig.keyframe_insert("rotation_euler", frame=n)
 
     t = world_text("title", "Empat kemungkinan", FS, 64, 0.0, 2.95, ink, cam, D)
     fit(t, cam, D, 0.88)

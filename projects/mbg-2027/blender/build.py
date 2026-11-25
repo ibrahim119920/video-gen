@@ -2,12 +2,14 @@
 
 Dijalankan di dalam Blender:
 
-    TASKS='[{"scene":"s01","start":120,"end":120,"out":"/tmp/preview/s01"}]' \
+    TASKS='[{"scene":"s01","n":240,"out":"/tmp/frames/s01"}]' \
       blender -b --factory-startup --python build.py
 
-Env:
-  TASKS  JSON list task. Tiap task: scene, start, end, out.
-  SPP    opsional, default 32 (dipakai scene bila tidak di-hardcode).
+Tiap task:
+  scene   kunci di SCENES
+  n       jumlah frame scene (1..n)
+  out     folder PNG
+  still   opsional; kalau ada, hanya frame itu yang dirender
 """
 
 import bpy
@@ -19,59 +21,81 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-from scenes import s01_hook, s02_empat  # noqa: E402
+from scenes import (  # noqa: E402
+    s01_hook,
+    s02_empat,
+    s03_jalan,
+    s04_kesehatan,
+    s05_transportasi,
+    s06_pendidikan,
+    s07_penutup,
+)
 
 SCENES = {
     "s01": s01_hook,
     "s02": s02_empat,
+    "s03": s03_jalan,
+    "s04": s04_kesehatan,
+    "s05": s05_transportasi,
+    "s06": s06_pendidikan,
+    "s07": s07_penutup,
 }
 
 
-def render_range(name, mod, start, end, outdir):
-    mod.build()
-    sc = bpy.context.scene
-    os.makedirs(outdir, exist_ok=True)
-    times = []
-    for f in range(start, end + 1):
-        sc.frame_set(f)
-        sc.render.filepath = os.path.join(outdir, "f_%04d" % f)
-        t0 = time.perf_counter()
-        bpy.ops.render.render(write_still=True)
-        dt = time.perf_counter() - t0
-        times.append(dt)
-        print("FRAME %s %d %.3f" % (name, f, dt), flush=True)
-    return times
-
-
-def stats(t):
-    if not t:
+def run_task(t):
+    name = t["scene"]
+    if name not in SCENES:
+        print("UNKNOWN_SCENE", name, flush=True)
         return {}
-    steady = sorted(t[1:]) if len(t) > 1 else list(t)
-    return {
-        "n": len(t),
-        "first": round(t[0], 3),
+    mod = SCENES[name]
+    n = int(t.get("n", 240))
+    out = t["out"]
+    still = t.get("still")
+
+    mod.build(n)
+    sc = bpy.context.scene
+    os.makedirs(out, exist_ok=True)
+
+    frames = [int(still)] if still else list(range(1, n + 1))
+    t0 = time.perf_counter()
+    times = []
+    for i, f in enumerate(frames):
+        sc.frame_set(f)
+        sc.render.filepath = os.path.join(out, "f_%04d" % f)
+        a = time.perf_counter()
+        bpy.ops.render.render(write_still=True)
+        dt = time.perf_counter() - a
+        times.append(dt)
+        if still:
+            print("FRAME %s %d %.3f" % (name, f, dt), flush=True)
+        elif i % 20 == 0 or i == len(frames) - 1:
+            el = time.perf_counter() - t0
+            print("PROGRESS %s %d/%d %.3f s/frame, elapsed %.0f s"
+                  % (name, i + 1, len(frames), dt, el), flush=True)
+
+    steady = sorted(times[1:]) if len(times) > 1 else list(times)
+    row = {
+        "scene": name,
+        "n": len(times),
+        "first": round(times[0], 3),
         "median": round(steady[len(steady) // 2], 3),
-        "mean": round(sum(steady) / len(steady), 3),
-        "total": round(sum(t), 3),
+        "total": round(sum(times), 1),
     }
+    print("RESULT", json.dumps(row), flush=True)
+    return row
 
 
 def main():
-    raw = os.environ.get("TASKS", "[]")
-    tasks = json.loads(raw)
+    tasks = json.loads(os.environ.get("TASKS", "[]"))
     if not tasks:
         print("NO_TASKS", flush=True)
         return
+    grand = 0.0
     for t in tasks:
-        name = t["scene"]
-        if name not in SCENES:
-            print("UNKNOWN_SCENE", name, flush=True)
-            continue
-        print("TASK", name, t["start"], t["end"], t["out"], flush=True)
-        times = render_range(name, SCENES[name], t["start"], t["end"], t["out"])
-        row = stats(times)
-        row["scene"] = name
-        print("RESULT", json.dumps(row), flush=True)
+        print("TASK", t["scene"], t.get("n"), t["out"], flush=True)
+        row = run_task(t)
+        grand += row.get("total", 0.0)
+    print("GRAND_TOTAL_S", round(grand, 1), flush=True)
 
 
 if __name__ == "__main__":

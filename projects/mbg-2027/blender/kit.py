@@ -147,6 +147,13 @@ def add_text(name, body, font, size, mat, loc=(0,0,0), align_x="CENTER", align_y
     o.data.materials.append(mat)
     return o
 
+def push_cam(cam, p0, p1, n):
+    cam.location = p0
+    cam.keyframe_insert("location", frame=1)
+    cam.location = p1
+    cam.keyframe_insert("location", frame=n)
+
+
 def add_cam(loc, target, lens=50.0, sensor=36.0):
     cd = bpy.data.cameras.new("Cam")
     cd.lens = lens
