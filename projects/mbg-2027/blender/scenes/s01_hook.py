@@ -14,7 +14,7 @@ def build():
     add_backdrop([(0.00, "#F2A55E"), (0.10, "#D9713F"),
                   (0.28, "#7A3B4A"), (0.62, "#1A1526")], z0=0.0, z1=150.0)
     add_sun((-30, 44, 16), (0, 6, 6), 3.0, "#FFD2A0", 7.0)
-    add_sun((34, -26, 18), (0, 6, 4), 0.9, "#7A88B8", 12.0)
+    add_sun((34, -26, 18), (0, 6, 4), 1.2, "#C08A6A", 12.0)
 
     gnd = mat_diff("gnd", "#14121C", 0.95, 0.05)
     far = mat_diff("far", "#3A3550", 0.95, 0.05)
@@ -24,7 +24,7 @@ def build():
     cream = mat_emit("cream", "#FFE9CF", 1.0)
     soft = mat_emit("soft", "#D9C7B4", 0.9)
     hud = mat_emit("hud", "#C4B2A0", 0.9)
-    sunm = mat_emit("sunm", "#FFC98A", 1.7)
+    sunm = mat_emit("sunm", "#FFC98A", 1.5)
 
     add_ground(gnd, 1200.0, 0.0)
     city_row("f", 46.0, -80, 80, 10, 24, 4.5, 10.0, far, 11, 4.0)
@@ -32,7 +32,7 @@ def build():
     city_row("n", 9.0, -30, 30, 1.5, 4.5, 2.5, 6.0, near, 33, 2.5)
 
     cam = add_cam((0, -24, 7.0), (0, 8, 9.4), 35.0)
-    add_disc("sundisc", (-20.0, 120.0, 48.0), 8.0, sunm, cam)
+    add_disc("sundisc", (-32.0, 120.0, 46.0), 7.0, sunm, cam)
 
     cam.keyframe_insert("location", frame=1)
     cam.location = (0, -21.0, 7.6)
