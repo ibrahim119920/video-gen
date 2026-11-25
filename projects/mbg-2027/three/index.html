@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>mbg s01</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Instrument+Serif:ital@1&display=swap');
+
+  html, body {
+    margin: 0; padding: 0;
+    width: 1080px; height: 1920px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 24% 44%,
+        rgba(255,235,200,0.98) 0%,
+        rgba(255,220,160,0.60) 2.4%,
+        rgba(240,164,79,0.20) 6.5%,
+        rgba(240,164,79,0) 12%),
+      linear-gradient(180deg,
+        #06080F 0%, #100C1A 26%, #2A1B33 40%, #5E3347 48%,
+        #A85A42 53%, #E08A4C 56%, #F2A55E 58%,
+        #8A4A3A 65%, #2A1A24 76%, #14101A 100%);
+  }
+  #c { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
+
+  .ov {
+    position: absolute; inset: 0;
+    font-family: 'Inter', sans-serif;
+    color: #FFE9CF;
+    text-align: center;
+    pointer-events: none;
+  }
+  #hud {
+    position: absolute; top: 40px; left: 44px;
+    font-size: 26px; font-weight: 700; letter-spacing: 0.30em;
+    color: #C4B2A0;
+  }
+  #big {
+    position: absolute; top: 268px; left: 0; width: 1080px;
+    font-size: 210px; font-weight: 800; letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  #unit {
+    position: absolute; top: 500px; left: 0; width: 1080px;
+    font-size: 58px; font-weight: 700; letter-spacing: 0.48em;
+    color: #F0A44F; text-indent: 0.48em;
+  }
+  .cap {
+    position: absolute; left: 0; width: 1080px;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic; font-size: 54px; color: #E2D2BF;
+  }
+  #cap1 { top: 622px; }
+  #cap2 { top: 694px; }
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="ov">
+    <div id="hud">SIMULASI 2027 &middot; ANGGARAN MBG</div>
+    <div id="big">Rp0</div>
+    <div id="unit">TRILIUN</div>
+    <div class="cap" id="cap1">dari Rp240 triliun,</div>
+    <div class="cap" id="cap2">tersisa Rp60.</div>
+  </div>
+  <script type="module" src="./scene.js"></script>
+</body>
+</html>
