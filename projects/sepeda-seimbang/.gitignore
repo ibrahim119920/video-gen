@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.aura3d/
+out/
+*.tsbuildinfo
+
+# Starter asset library; the bike scenes are fully procedural.
+public/

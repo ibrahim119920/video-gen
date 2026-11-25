@@ -10,3 +10,6 @@ projects/mbg-2027/three/stills/
 projects/mbg-2027/three/t*/
 projects/mbg-2027/three/*.mp4
 projects/mbg-2027/three/strip_*.png
+projects/sepeda-seimbang/node_modules/
+projects/sepeda-seimbang/dist/
+projects/sepeda-seimbang/.aura3d/
