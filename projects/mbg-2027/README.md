@@ -93,6 +93,13 @@ python build.py
 `requestAnimationFrame`), lalu meng-encode tiap segmen dengan parameter yang
 sama dan menyambungnya tanpa re-encode.
 
+## Penyimpanan
+
+Frame mentah (`three/frames/`), segmen (`three/segments/`), dan still
+(`three/stills/`) adalah artefak regenerable dan tidak disimpan. `out/` hanya
+berisi video final, 12 klip, dan `preview-grid.jpg` (contact sheet 12 klip).
+Jalankan `python build.py` untuk membuat ulang semuanya.
+
 ## Catatan
 
 - Gaya: diorama mainan low-poly, matte, bayangan lembut; satu objek highlight
