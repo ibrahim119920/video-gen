@@ -1,180 +1,149 @@
 # Naskah — "Rp180 Triliun: Empat Kemungkinan"
 
-- **Durasi:** 52 detik
-- **Format:** 1080×1920 (9:16), 30 fps, 1.560 frame
+- **Durasi:** 58,07 detik (1.742 frame @ 30 fps)
+- **Format:** 1080×1920 (9:16)
 - **Narasi:** TTS Indonesia, `id-ID-ArdiNeural`, rate −4%
 - **Nada:** tenang, informatif, tanpa retorika politik
 - **Aturan angka:** setiap angka di layar harus ada di `research.md` §7
 
----
-
-## 1. Timeline
-
-| # | Mulai | Durasi | Frame | Fungsi |
-| --- | --- | --- | --- | --- |
-| S01 | 0:00 | 8 s | 1–240 | Hook: angka dan aritmetika |
-| S02 | 0:08 | 7 s | 241–450 | Empat kemungkinan |
-| S03 | 0:15 | 8 s | 451–690 | Infrastruktur |
-| S04 | 0:23 | 9 s | 691–960 | Kesehatan |
-| S05 | 0:32 | 7 s | 961–1.170 | Transportasi publik |
-| S06 | 0:39 | 7 s | 1.171–1.380 | Pendidikan & perumahan |
-| S07 | 0:46 | 6 s | 1.381–1.560 | Batas klaim |
-
-Durasi final dihitung ulang dari panjang audio TTS hasil ukur
-(`timeline.json`), dengan aturan `durasi = max(rencana, audio + 0,8 s)`.
-Angka di tabel ini adalah rencana, bukan hasil ukur.
+Semua durasi di bawah **terukur** dari MP3 hasil `edge-tts`
+(`ffprobe -show_entries format=duration`), bukan perkiraan.
+Aturan: `frame = max(150, round((vo + 1,0) × 30))`.
 
 ---
 
-## 2. Narasi per scene
+## 1. Timeline terukur
 
-### S01 — Hook (8 s)
+| # | Mulai | VO | Slot | Frame | Fungsi |
+| --- | --- | --- | --- | --- | --- |
+| S01 | 0,00 s | 9,05 s | 10,03 s | 301 | Hook: angka dan aritmetika |
+| S02 | 10,03 s | 7,92 s | 8,93 s | 268 | Empat kemungkinan |
+| S03 | 18,97 s | 7,97 s | 8,97 s | 269 | Infrastruktur |
+| S04 | 27,93 s | 7,61 s | 8,60 s | 258 | Kesehatan |
+| S05 | 36,53 s | 7,25 s | 8,23 s | 247 | Transportasi publik |
+| S06 | 44,77 s | 5,83 s | 6,83 s | 205 | Pendidikan & perumahan |
+| S07 | 51,60 s | 5,47 s | 6,47 s | 194 | Batas klaim |
+| | | **51,10 s** | **58,07 s** | **1.742** | |
 
-> Tahun 2027, anggaran MBG dipangkas dari Rp240 triliun menjadi Rp60 triliun.
-> Rp180 triliun berpindah. Jadi apa?
+Setiap scene dirender sebagai rentang frame sendiri (1..n), bukan penomoran
+global. Penyambungan dilakukan ffmpeg.
 
-Teks layar:
+---
 
-```
-SIMULASI 2027 · ANGGARAN MBG        (HUD, 30 px, tracking lebar)
-Rp180                               (220 px)
-t r i l i u n                        (86 px, aksen)
-dari Rp240 triliun,                 (serif italic, 58 px)
-tersisa Rp60.                       (serif italic, 58 px)
-```
+## 2. Narasi final
 
-Sumber di layar: `Premis simulasi` (bukan data eksternal).
+### S01 — Hook (9,05 s)
 
-### S02 — Empat kemungkinan (7 s)
-
-> Empat kemungkinan. Masing-masing menyerap seluruh Rp180 triliun.
-> Kita tidak menjumlahkannya.
-
-Teks layar:
+> MBG dipangkas dari 240 ke 60 triliun. 180 triliun berpindah. Jadi apa?
 
 ```
-Empat kemungkinan
-
-[ikon] Infrastruktur        Rp180 T
-[ikon] Kesehatan            Rp180 T
-[ikon] Transportasi         Rp180 T
-[ikon] Pendidikan & rumah   Rp180 T
-
-Satu anggaran, bukan empat. (aksen)
+SIMULASI 2027 · ANGGARAN MBG     (HUD 30 px, tracking 1,35)
+Rp180                            (210 px)
+T R I L I U N                    (62 px, aksen, tracking 1,9)
+dari Rp240 triliun,              (serif italic 56 px)
+tersisa Rp60.                    (serif italic 56 px)
 ```
 
-### S03 — Infrastruktur (8 s)
+### S02 — Empat kemungkinan (7,92 s)
 
-> Infrastruktur. Rp80 triliun untuk jalan, setara 14.388 kilometer.
-> Rp50 triliun lagi untuk rel, setara 850 kilometer.
+> Empat kemungkinan. Masing-masing menyerap 180 triliun. Tidak dijumlahkan.
 
-Teks layar:
+```
+Empat kemungkinan                          (64 px)
+masing-masing menyerap Rp180 triliun       (serif italic 40 px)
+
+[ikon] Infrastruktur
+[ikon] Kesehatan
+[ikon] Transportasi
+[ikon] Pendidikan & rumah
+
+Kita tidak menjumlahkannya.                (serif italic 40 px)
+```
+
+### S03 — Infrastruktur (7,97 s)
+
+> Infrastruktur. 80 triliun jalan, setara 14.388 kilometer.
 
 ```
 INFRASTRUKTUR · Rp80 T
 14.388 km
-jalan nasional & daerah · setara biaya IJD
-
+jalan nasional & daerah, setara biaya IJD
 Rp50 T rel · 850 km ekuivalen
+Bina Marga · IJD 2025-2026 · Dephub
 ```
 
-### S04 — Kesehatan (9 s)
+### S04 — Kesehatan (7,61 s)
 
-> Kesehatan. Rp70 triliun untuk iuran BPJS: 138,9 juta orang selama setahun.
-> Rp35 triliun untuk rumah sakit: 205 unit setara biaya.
-
-Teks layar:
+> Kesehatan. 70 triliun BPJS, setara 138,9 juta orang.
 
 ```
 KESEHATAN · Rp70 T
 138,9 juta
-orang-tahun iuran PBI · Rp504.000/orang
-
+orang-tahun iuran PBI, Rp504.000 per orang
 Rp35 T rumah sakit · 205 unit setara
+BPJS Kesehatan · Kemenkes
 ```
 
-### S05 — Transportasi publik (7 s)
+### S05 — Transportasi (7,25 s)
 
-> Transportasi. Rp40 triliun untuk 348 kilometer jalur BRT.
-> Rp10 triliun untuk 7.893 bus.
-
-Teks layar:
+> Transportasi. 40 triliun, setara 348 kilometer BRT.
 
 ```
 TRANSPORTASI · Rp40 T
 348 km
-jalur khusus BRT · pembanding Trans Semarang
-
+jalur khusus BRT, pembanding Trans Semarang
 Rp10 T armada · 7.893 bus medium
+Antara · DAMRI 2024
 ```
 
-### S06 — Pendidikan & perumahan (7 s)
+### S06 — Pendidikan & perumahan (5,83 s)
 
-> Pendidikan dan perumahan. Rp60 triliun memperbaiki tiga juta rumah.
-> Rp50 triliun merevitalisasi 30.437 sekolah.
-
-Teks layar:
+> Pendidikan dan perumahan. 60 triliun, tiga juta rumah.
 
 ```
 PENDIDIKAN & PERUMAHAN · Rp60 T
 3 juta
-rumah tidak layak huni · Rp20 juta/unit
-
+rumah tidak layak huni, Rp20 juta per unit
 Rp50 T sekolah · 30.437 satuan
+PKP · BSPS · Kemendikdasmen 2025
 ```
 
-### S07 — Batas klaim (6 s)
+### S07 — Batas klaim (5,47 s)
 
-> Semua ini hitungan biaya satuan. Bukan janji selesai dalam satu tahun.
-
-Teks layar:
+> Semua ini biaya satuan. Bukan janji selesai tahun ini.
 
 ```
 SIMULASI BIAYA SATUAN
 Bukan janji output 2027.
-Butuh multiyears, lahan, dan biaya pemeliharaan.
+Butuh multiyears, lahan,
+dan biaya pemeliharaan.
 ```
 
 ---
 
-## 3. Hitungan kata dan tempo
+## 3. Catatan penulisan
 
-| Scene | Kata | Target tempo |
-| --- | --- | --- |
-| S01 | 19 | 2,4 kata/s |
-| S02 | 14 | 2,0 kata/s |
-| S03 | 20 | 2,5 kata/s |
-| S04 | 21 | 2,3 kata/s |
-| S05 | 14 | 2,0 kata/s |
-| S06 | 15 | 2,1 kata/s |
-| S07 | 13 | 2,2 kata/s |
-| **Total** | **116** | 2,2 kata/s |
-
-116 kata ÷ 52 s = 2,2 kata/s. Ini tempo dokumenter lambat, sengaja, supaya
-angka besar di layar punya waktu dibaca.
+1. **Satu angka diucapkan, angka kedua di layar.** S03 mengucapkan 14.388 km
+   sementara 850 km rel hanya tampil; S05 mengucapkan 348 km, bus hanya
+   tampil. Ini menjaga tempo dan mencegah dua angka besar diucapkan beruntun.
+2. **Kata "setara" wajib** setiap kali target simulasi diucapkan.
+3. **Tidak ada "akan dibangun" / "terealisasi".** Gunakan "setara",
+   "ekuivalen", "kapasitas pembiayaan".
+4. **S07 tidak boleh dipotong.**
+5. Naskah versi pertama (116 kata tertulis, ~170 kata terucap) berdurasi
+   75,94 s — 24 s di atas target. Angka yang ditulis penuh ("seratus tiga
+   puluh delapan koma sembilan juta") memakan 7 kata untuk satu angka.
 
 ---
 
-## 4. Aturan narasi
-
-1. **Angka selalu berpasangan dengan anggarannya.** "138,9 juta" tanpa "Rp70 T"
-   akan terbaca sebagai janji, bukan kapasitas.
-2. **Kata "setara" wajib** setiap kali menyebut target simulasi.
-3. **Tidak ada kata "akan dibangun", "dibangun", "terealisasi".** Gunakan
-   "setara biaya", "ekuivalen", "kapasitas pembiayaan".
-4. **Tidak ada nama partai, menteri, atau program politik.** Netral.
-5. **S07 tidak boleh dipotong.** Tanpa itu, video menjadi klaim yang tidak
-   bisa dipertanggungjawabkan.
-
----
-
-## 5. TTS
+## 4. TTS
 
 | Item | Nilai |
 | --- | --- |
-| Engine | `edge-tts` (fallback `gTTS`) |
+| Engine | `edge-tts` |
 | Voice | `id-ID-ArdiNeural` |
 | Rate | −4% |
-| Format | MP3 24 kHz mono, lalu AAC 192 kbps saat mux |
-| Per scene | satu file, `vo/s01.mp3` … `vo/s07.mp3` |
-| Ukur | `ffprobe -show_entries format=duration` |
+| Laju terukur | ±2,0 kata/detik |
+| Format | MP3 24 kHz mono → AAC 192 kbps saat mux |
+| Per scene | `vo/s01.mp3` … `vo/s07.mp3` |
+| Panjang total | 51,10 s |

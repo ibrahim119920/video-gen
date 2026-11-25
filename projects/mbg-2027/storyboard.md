@@ -25,7 +25,7 @@ miring sebagai penutup komposisi.
 | Scene | Langit atas | Langit horizon | Aksen |
 | --- | --- | --- | --- |
 | S01 | `#070A14` | `#E8934E` | `#F0A44F` |
-| S02 | `#14508F` | `#A9D8F0` | `#FFD27F` |
+| S02 | `#1F4F7A` | `#DDEFF5` | `#C25A0A` (tinta gelap `#12203A`) |
 | S03 | `#12233A` | `#F0B47A` | `#F0A44F` |
 | S04 | `#123A46` | `#C9E6E0` | `#7FD1C1` |
 | S05 | `#1B2A55` | `#F5C48A` | `#E8A03C` |
@@ -34,7 +34,7 @@ miring sebagai penutup komposisi.
 
 ---
 
-## S01 — Hook (frame 1–240)
+## S01 — Hook (301 frame = 10,03 s)
 
 - **Set:** skyline tiga lapis di atas bidang tanah gelap. Lapis jauh `#2A2B44`
   (y≈30), tengah `#1B1C2E` (y≈16), dekat `#0D0E16` (y≈6). Tinggi 2–22 m.
@@ -49,7 +49,7 @@ miring sebagai penutup komposisi.
   - Dua baris serif miring 58 px, `#D9C7B4`, di y −0,10 dan −0,145
 - **Gerak teks:** muncul statis; hanya kamera yang bergerak.
 
-## S02 — Empat kemungkinan (frame 241–450)
+## S02 — Empat kemungkinan (268 frame = 8,93 s)
 
 - **Set:** empat panggung heksagonal bertumpuk vertikal di ruang kosong,
   latar tiga balok raksasa yang diburamkan warna (bukan DOF).
@@ -57,12 +57,16 @@ miring sebagai penutup komposisi.
 - **Kamera:** 50 mm, tegak lurus bidang teks (tidak ada distorsi perspektif
   pada huruf), drift lateral 0,3 m.
 - **Teks:** di dunia, bukan billboard, karena kamera menghadap lurus.
-  - Judul "Empat kemungkinan" 64 px di z 2,85
-  - Label 52 px kiri, nilai "Rp180 T" 64 px kanan
-  - Penutup "Satu anggaran, bukan empat." 44 px aksen di z −2,62
+  Teks diputar 90° pada X supaya normalnya menghadap kamera.
+  - Judul "Empat kemungkinan" 64 px, tinta gelap, di z 2,95
+  - Subtitle serif miring 40 px di z 2,52
+  - Label 44 px kiri (x −0,28), panggung di x −1,05
+  - Penutup "Kita tidak menjumlahkannya." 40 px di z −2,56
+- **Kontras:** tinta gelap di langit terang. Angka besar tidak diulang empat
+  kali; nominal Rp180 triliun ada di subtitle.
 - **Gerak:** seluruh rig berputar 2° pada sumbu Z; teks tidak ikut.
 
-## S03 — Infrastruktur (frame 451–690)
+## S03 — Infrastruktur (269 frame = 8,97 s)
 
 - **Set:** jalan layang rendah melintang, pilar beton, siluet gedung di belakang.
 - **Warna:** senja keemasan, aspal `#2A2A32`, beton `#B8AFA0`.
@@ -70,7 +74,7 @@ miring sebagai penutup komposisi.
   sub "jalan nasional & daerah · setara biaya IJD" 40 px; baris kedua
   "Rp50 T rel · 850 km ekuivalen" 44 px.
 
-## S04 — Kesehatan (frame 691–960)
+## S04 — Kesehatan (258 frame = 8,60 s)
 
 - **Set:** blok rumah sakit putih-hijau, deret jendela, satu palang merah
   emission di fasad. Kamera lebih rendah agar gedung terasa besar.
@@ -78,21 +82,21 @@ miring sebagai penutup komposisi.
 - **Teks:** "138,9 juta" 150 px; sub "orang-tahun iuran PBI · Rp504.000/orang";
   baris kedua "Rp35 T rumah sakit · 205 unit setara".
 
-## S05 — Transportasi (frame 961–1.170)
+## S05 — Transportasi (247 frame = 8,23 s)
 
 - **Set:** jalan dua lajur, tiga bus oranye berbaris, halte, tiang lampu.
 - **Warna:** siang cerah, aspal gelap, bus `#E8A03C`.
 - **Teks:** "348 km" 150 px; sub "jalur khusus BRT · pembanding Trans Semarang";
   baris kedua "Rp10 T armada · 7.893 bus medium".
 
-## S06 — Pendidikan & perumahan (frame 1.171–1.380)
+## S06 — Pendidikan & perumahan (205 frame = 6,83 s)
 
 - **Set:** deret rumah kecil ber atap limas dan satu gedung sekolah di ujung.
 - **Warna:** sore hangat, `#F3D2A8` → `#2A2340`.
 - **Teks:** "3 juta" 150 px; sub "rumah tidak layak huni · Rp20 juta/unit";
   baris kedua "Rp50 T sekolah · 30.437 satuan".
 
-## S07 — Batas klaim (frame 1.381–1.560)
+## S07 — Batas klaim (194 frame = 6,47 s)
 
 - **Set:** kembaran S01 tetapi lebih gelap, skyline lebih rendah, tanpa
   matahari. Kamera statis.
