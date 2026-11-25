@@ -129,7 +129,7 @@ def add_pyr(name, loc, r, depth, mat, rot_z=0.0, sy=1.0):
     o.data.materials.append(mat)
     return o
 
-def add_text(name, body, font, size, mat, loc=(0,0,0), align_x="CENTER", align_y="CENTER", sp=1.0):
+def add_text(name, body, font, size, mat, loc=(0,0,0), align_x="CENTER", align_y="CENTER", sp=1.0, rot=(0,0,0)):
     cu = bpy.data.curves.new(name, type="FONT")
     cu.body = body
     if font:
@@ -143,6 +143,7 @@ def add_text(name, body, font, size, mat, loc=(0,0,0), align_x="CENTER", align_y
     o = bpy.data.objects.new(name, cu)
     bpy.context.collection.objects.link(o)
     o.location = loc
+    o.rotation_euler = rot
     o.data.materials.append(mat)
     return o
 
@@ -176,9 +177,12 @@ def cam_text(cam, name, body, font, px, xf, yf, mat, d=1.2, sp=1.0, align="CENTE
     return o
 
 def world_text(name, body, font, px, x, z, mat, cam, dist, align="CENTER", sp=1.0, y=-0.02):
+    # Kamera menghadap +Y, jadi teks harus diputar 90 derajat pada X
+    # supaya normalnya (local +Z) menunjuk -Y, ke arah kamera.
     fh = frame_h(cam, dist)
     size = (px / 1920.0) * fh / CAP
-    return add_text(name, body, font, size, mat, loc=(x, y, z), align_x=align, sp=sp)
+    return add_text(name, body, font, size, mat, loc=(x, y, z), align_x=align, sp=sp,
+                    rot=(math.pi / 2.0, 0.0, 0.0))
 
 def fit(o, cam, d, max_frac=0.9):
     bpy.context.view_layer.update()
