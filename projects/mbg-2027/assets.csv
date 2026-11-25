@@ -1,0 +1,6 @@
+jenis,nama,sumber,lisensi,dipakai_di
+font,Liberation Sans Bold,paket sistem fonts-liberation,SIL OFL 1.1,semua scene (angka dan label)
+font,DejaVu Serif Italic,paket sistem fonts-dejavu,Bitstream Vera (permisif),caption serif miring
+vo,id-ID-ArdiNeural,edge-tts (Microsoft),sintetis — periksa ToS sebelum publikasi komersial,seluruh narasi
+musik,-,belum dipilih,-,-
+gambar,-,tidak ada (semua geometri dibuat dari kode),-,-
