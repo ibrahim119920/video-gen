@@ -59,7 +59,7 @@ def build():
 
     z = -1.60
     parts.append(add_box("r1", (-1.05, 0.0, z + 0.21), (0.64, 0.50, 0.42), wht))
-    parts.append(add_pyr("r2", (-1.05, 0.0, z + 0.51), 0.40, 0.24, roof, math.pi / 4, 0.78))
+    parts.append(add_pyr("r2", (-1.05, 0.0, z + 0.55), 0.52, 0.26, roof, math.pi / 4, 0.75))
 
     for o in parts:
         o.parent = rig
