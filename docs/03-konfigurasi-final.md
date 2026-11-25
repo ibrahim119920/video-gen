@@ -192,10 +192,19 @@ tekstur, dan geometri lebih banyak akan lebih mahal; angka final harus dari
 1. **`spp`, `bounces`, dan material volumetrik di `.blend` asli.** Jalankan sel
    audit 5 detik. Kalau `spp` masih 4096 atau `volume_mats` tidak kosong,
    seluruh estimasi di §E bergeser.
-2. **Flicker temporal.** Uji A/B 32 vs 64 hanya membandingkan still. OIDN tidak
-   sadar waktu, jadi noise sisa bisa berbeda antar frame dan terlihat berkedip
-   di area gelap. Ujinya: render frame yang sama dengan dua `cycles.seed`
-   berbeda, lalu diff.
+2. **Flicker temporal — sudah diukur pada scene MBG (25 Nov 2026).** 16 frame
+   berurutan S01 (1080×1920, 32 spp, OIDN GPU, kamera bergerak) dianalisis
+   simpangan bakunya per piksel terhadap waktu:
+
+   | Wilayah | std temporal |
+   | --- | --- |
+   | Teks (menempel di kamera, statis di frame) | 0,26 / 255 |
+   | Langit kosong | 0,02 / 255 |
+   | Gedung (bergerak karena kamera) | 0,34 / 255 |
+
+   0,26/255 = 0,1% — berada di bawah satu level kuantisasi 8-bit, jadi tidak
+   terlihat. Ini **satu scene**, bukan jaminan untuk semua scene: area gelap
+   dengan emission kuat tetap perlu diperiksa sendiri.
 3. **Biaya scene produksi.** Semua angka di atas berasal dari kubus dan teks
    sederhana.
 
