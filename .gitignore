@@ -5,6 +5,8 @@ out/
 preview/
 .DS_Store
 projects/mbg-2027/three/frames/
+projects/mbg-2027/three/segments/
+projects/mbg-2027/three/stills/
 projects/mbg-2027/three/t*/
 projects/mbg-2027/three/*.mp4
 projects/mbg-2027/three/strip_*.png

@@ -20,6 +20,32 @@
 Aritmetika premis: `240 − 60 = 180` triliun. Bagian yang dipangkas = `180 / 240 = 75%`,
 bukan separuh. Kalimat "separuh anggaran" **tidak boleh** dipakai.
 
+### 1a. Kerangka final video (v3)
+
+Video 60 detik memakai pembagian **rata**: Rp180 T ÷ 4 = **Rp45 T per bidang**
+(infrastruktur, kesehatan, layanan publik, pendidikan & perumahan). Ini bukan
+empat paket yang dijumlahkan.
+
+Agar konsisten dengan biaya satuan di §3–§6, anggaran tiap program pada skenario
+180 T diskalakan **1/4**, dan hasil km/unit ikut diskalakan 1/4. Dengan begitu
+total tiap bidang tetap Rp45 T.
+
+| Bidang | Program | Anggaran §3–§6 | Skala 1/4 | Hasil |
+| --- | --- | --- | --- | --- |
+| Infrastruktur | Jalan | Rp80 T → 14.388 km | Rp20 T | ±3.600 km |
+| Infrastruktur | Rel | Rp50 T → 850 km | Rp12,5 T | ±210 km |
+| Kesehatan | RSUD | Rp35 T → 205 RS | Rp8,75 T | ±51 RS |
+| Kesehatan | Puskesmas | Rp25 T → 18.744 paket | Rp6,25 T | ±4.700 paket |
+| Kesehatan | BPJS PBI | Rp70 T → 138,9 juta | Rp17,5 T | ±35 juta orang |
+| Layanan publik | BRT | Rp40 T → 348 km | Rp10 T | ±87 km |
+| Layanan publik | Bus | Rp10 T → 7.893 unit | Rp2,5 T | ±1.970 bus |
+| Pendidikan | Sekolah | Rp50 T → 30.437 | Rp12,5 T | ±7.600 sekolah |
+| Perumahan | BSPS | Rp60 T → 3.000.000 | Rp15 T | 750 ribu rumah |
+| Perumahan | Rumah baru | Rp40 T → 800.000 | Rp10 T | 200 ribu rumah |
+
+Angka-angka ini tetap **target simulasi / ekuivalen biaya**, bukan output fisik
+2027. Aturan di §2 dan §8 tetap berlaku.
+
 ---
 
 ## 2. Tiga jenis angka

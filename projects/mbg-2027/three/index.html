@@ -2,67 +2,173 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<title>mbg s01</title>
+<title>MBG 2027 — Three.js</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Instrument+Serif:ital@1&display=swap');
+  @font-face {
+    font-family: 'Poppins';
+    font-weight: 600;
+    font-style: normal;
+    src: url('./vendor/poppins-600.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Poppins';
+    font-weight: 800;
+    font-style: normal;
+    src: url('./vendor/poppins-800.woff2') format('woff2');
+  }
 
   html, body {
     margin: 0; padding: 0;
     width: 1080px; height: 1920px;
     overflow: hidden;
-    background:
-      radial-gradient(circle at 24% 44%,
-        rgba(255,235,200,0.98) 0%,
-        rgba(255,220,160,0.60) 2.4%,
-        rgba(240,164,79,0.20) 6.5%,
-        rgba(240,164,79,0) 12%),
-      linear-gradient(180deg,
-        #06080F 0%, #100C1A 26%, #2A1B33 40%, #5E3347 48%,
-        #A85A42 53%, #E08A4C 56%, #F2A55E 58%,
-        #8A4A3A 65%, #2A1A24 76%, #14101A 100%);
+    background: #FFF3DC;
+    font-family: 'Poppins', system-ui, sans-serif;
   }
-  #c { position: absolute; inset: 0; width: 1080px; height: 1920px; display: block; }
 
-  .ov {
+  #c {
     position: absolute; inset: 0;
-    font-family: 'Inter', sans-serif;
-    color: #FFE9CF;
+    width: 1080px; height: 1920px;
+    display: block;
+  }
+
+  /* ---------- overlay ---------- */
+  #ov {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #title {
+    position: absolute;
+    top: 176px; left: 0; width: 1080px;
     text-align: center;
+    font-weight: 600;
+    font-size: 30px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #3C6E9E;
+    white-space: nowrap;
+  }
+
+  #big {
+    position: absolute;
+    top: 236px; left: 0; width: 1080px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 168px;
+    line-height: 1.0;
+    letter-spacing: -0.025em;
+    color: #F28C38;
+    white-space: nowrap;
+    transform-origin: 50% 45%;
+  }
+
+  #bigsub {
+    position: absolute;
+    top: 412px; left: 0; width: 1080px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 38px;
+    letter-spacing: 0.02em;
+    color: #3A2A22;
+    white-space: nowrap;
+  }
+
+  #badge {
+    position: absolute;
+    top: 560px; left: 0; width: 1080px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 200px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: #F28C38;
+    transform-origin: 50% 50%;
+    white-space: nowrap;
+  }
+
+  #sub {
+    position: absolute;
+    bottom: 310px; left: 70px; width: 940px;
+    box-sizing: border-box;
+    padding: 20px 34px 24px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 42px;
+    line-height: 1.30;
+    letter-spacing: -0.005em;
+    color: #2A1A10;
+    background: rgba(255,243,220,0.86);
+    border-radius: 28px;
+    transform-origin: 50% 60%;
+    box-shadow: 0 10px 28px rgba(60,36,16,0.10);
+  }
+  #sub .kw { font-weight: 800; }
+
+  /* ---------- layers ---------- */
+  #scrim {
+    position: absolute; inset: 0;
+    opacity: 0;
     pointer-events: none;
   }
-  #hud {
-    position: absolute; top: 40px; left: 44px;
-    font-size: 26px; font-weight: 700; letter-spacing: 0.30em;
-    color: #C4B2A0;
+
+  #vig {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(125% 90% at 50% 44%,
+        rgba(48,28,16,0) 62%,
+        rgba(48,28,16,0.05) 86%,
+        rgba(48,28,16,0.10) 100%);
   }
-  #big {
-    position: absolute; top: 268px; left: 0; width: 1080px;
-    font-size: 210px; font-weight: 800; letter-spacing: -0.01em;
-    line-height: 1;
+
+  #flash {
+    position: absolute; inset: 0;
+    background: #FFFFFF;
+    opacity: 0;
   }
-  #unit {
-    position: absolute; top: 500px; left: 0; width: 1080px;
-    font-size: 58px; font-weight: 700; letter-spacing: 0.48em;
-    color: #F0A44F; text-indent: 0.48em;
+
+  #wipe {
+    position: absolute; inset: 0;
+    background: #3C6E9E;
+    opacity: 0;
+    will-change: clip-path;
   }
-  .cap {
-    position: absolute; left: 0; width: 1080px;
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-style: italic; font-size: 54px; color: #E2D2BF;
+
+  #dbg {
+    position: absolute; inset: 0;
+    display: none;
+    background:
+      linear-gradient(to bottom,
+        transparent 0, transparent 12.5%, rgba(255,0,0,.35) 12.5%, rgba(255,0,0,.35) calc(12.5% + 2px), transparent calc(12.5% + 2px),
+        transparent 25%, rgba(255,0,0,.2) 25%, rgba(255,0,0,.2) calc(25% + 2px), transparent calc(25% + 2px),
+        transparent 75%, rgba(255,0,0,.2) 75%, rgba(255,0,0,.2) calc(75% + 2px), transparent calc(75% + 2px),
+        transparent 81%, rgba(255,0,0,.35) 81%, rgba(255,0,0,.35) calc(81% + 2px), transparent calc(81% + 2px));
   }
-  #cap1 { top: 622px; }
-  #cap2 { top: 694px; }
 </style>
 </head>
 <body>
   <canvas id="c"></canvas>
-  <div class="ov">
-    <div id="hud">SIMULASI 2027 &middot; ANGGARAN MBG</div>
-    <div id="big">Rp0</div>
-    <div id="unit">TRILIUN</div>
-    <div class="cap" id="cap1">dari Rp240 triliun,</div>
-    <div class="cap" id="cap2">tersisa Rp60.</div>
+
+  <div id="ov">
+    <div id="scrim"></div>
+    <div id="title"></div>
+    <div id="big"></div>
+    <div id="bigsub"></div>
+    <div id="badge"></div>
+    <div id="sub"></div>
+    <div id="vig"></div>
+    <div id="flash"></div>
+    <div id="wipe"></div>
+    <div id="dbg"></div>
   </div>
-  <script type="module" src="./scene.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>

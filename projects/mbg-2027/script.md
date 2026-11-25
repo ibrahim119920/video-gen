@@ -1,149 +1,148 @@
-# Naskah — "Rp180 Triliun: Empat Kemungkinan"
+# Naskah final — "Kalau Dana MBG Dipangkas 75%"
 
-- **Durasi:** 58,07 detik (1.742 frame @ 30 fps)
+- **Durasi:** 60,00 detik (12 klip × 5,0 detik; 1.800 frame @ 30 fps)
 - **Format:** 1080×1920 (9:16)
-- **Narasi:** TTS Indonesia, `id-ID-ArdiNeural`, rate −4%
-- **Nada:** tenang, informatif, tanpa retorika politik
-- **Aturan angka:** setiap angka di layar harus ada di `research.md` §7
+- **Narasi:** tidak ada voiceover; seluruh teks dibaca sebagai subtitle
+- **Gaya:** diorama mainan low-poly, teks besar + subtitle Indonesia
 
-Semua durasi di bawah **terukur** dari MP3 hasil `edge-tts`
-(`ffprobe -show_entries format=duration`), bukan perkiraan.
-Aturan: `frame = max(150, round((vo + 1,0) × 30))`.
-
----
-
-## 1. Timeline terukur
-
-| # | Mulai | VO | Slot | Frame | Fungsi |
-| --- | --- | --- | --- | --- | --- |
-| S01 | 0,00 s | 9,05 s | 10,03 s | 301 | Hook: angka dan aritmetika |
-| S02 | 10,03 s | 7,92 s | 8,93 s | 268 | Empat kemungkinan |
-| S03 | 18,97 s | 7,97 s | 8,97 s | 269 | Infrastruktur |
-| S04 | 27,93 s | 7,61 s | 8,60 s | 258 | Kesehatan |
-| S05 | 36,53 s | 7,25 s | 8,23 s | 247 | Transportasi publik |
-| S06 | 44,77 s | 5,83 s | 6,83 s | 205 | Pendidikan & perumahan |
-| S07 | 51,60 s | 5,47 s | 6,47 s | 194 | Batas klaim |
-| | | **51,10 s** | **58,07 s** | **1.742** | |
-
-Setiap scene dirender sebagai rentang frame sendiri (1..n), bukan penomoran
-global. Penyambungan dilakukan ffmpeg.
+Dokumen ini menggantikan naskah TTS lama (7 scene, 58 detik). Premis angka dan
+turunan tiap program ada di `research.md`; peta klip dan cara render ada di
+`README.md`.
 
 ---
 
-## 2. Narasi final
+## 1. Premis
 
-### S01 — Hook (9,05 s)
-
-> MBG dipangkas dari 240 ke 60 triliun. 180 triliun berpindah. Jadi apa?
-
-```
-SIMULASI 2027 · ANGGARAN MBG     (HUD 30 px, tracking 1,35)
-Rp180                            (210 px)
-T R I L I U N                    (62 px, aksen, tracking 1,9)
-dari Rp240 triliun,              (serif italic 56 px)
-tersisa Rp60.                    (serif italic 56 px)
-```
-
-### S02 — Empat kemungkinan (7,92 s)
-
-> Empat kemungkinan. Masing-masing menyerap 180 triliun. Tidak dijumlahkan.
-
-```
-Empat kemungkinan                          (64 px)
-masing-masing menyerap Rp180 triliun       (serif italic 40 px)
-
-[ikon] Infrastruktur
-[ikon] Kesehatan
-[ikon] Transportasi
-[ikon] Pendidikan & rumah
-
-Kita tidak menjumlahkannya.                (serif italic 40 px)
-```
-
-### S03 — Infrastruktur (7,97 s)
-
-> Infrastruktur. 80 triliun jalan, setara 14.388 kilometer.
-
-```
-INFRASTRUKTUR · Rp80 T
-14.388 km
-jalan nasional & daerah, setara biaya IJD
-Rp50 T rel · 850 km ekuivalen
-Bina Marga · IJD 2025-2026 · Dephub
-```
-
-### S04 — Kesehatan (7,61 s)
-
-> Kesehatan. 70 triliun BPJS, setara 138,9 juta orang.
-
-```
-KESEHATAN · Rp70 T
-138,9 juta
-orang-tahun iuran PBI, Rp504.000 per orang
-Rp35 T rumah sakit · 205 unit setara
-BPJS Kesehatan · Kemenkes
-```
-
-### S05 — Transportasi (7,25 s)
-
-> Transportasi. 40 triliun, setara 348 kilometer BRT.
-
-```
-TRANSPORTASI · Rp40 T
-348 km
-jalur khusus BRT, pembanding Trans Semarang
-Rp10 T armada · 7.893 bus medium
-Antara · DAMRI 2024
-```
-
-### S06 — Pendidikan & perumahan (5,83 s)
-
-> Pendidikan dan perumahan. 60 triliun, tiga juta rumah.
-
-```
-PENDIDIKAN & PERUMAHAN · Rp60 T
-3 juta
-rumah tidak layak huni, Rp20 juta per unit
-Rp50 T sekolah · 30.437 satuan
-PKP · BSPS · Kemendikdasmen 2025
-```
-
-### S07 — Batas klaim (5,47 s)
-
-> Semua ini biaya satuan. Bukan janji selesai tahun ini.
-
-```
-SIMULASI BIAYA SATUAN
-Bukan janji output 2027.
-Butuh multiyears, lahan,
-dan biaya pemeliharaan.
-```
-
----
-
-## 3. Catatan penulisan
-
-1. **Satu angka diucapkan, angka kedua di layar.** S03 mengucapkan 14.388 km
-   sementara 850 km rel hanya tampil; S05 mengucapkan 348 km, bus hanya
-   tampil. Ini menjaga tempo dan mencegah dua angka besar diucapkan beruntun.
-2. **Kata "setara" wajib** setiap kali target simulasi diucapkan.
-3. **Tidak ada "akan dibangun" / "terealisasi".** Gunakan "setara",
-   "ekuivalen", "kapasitas pembiayaan".
-4. **S07 tidak boleh dipotong.**
-5. Naskah versi pertama (116 kata tertulis, ~170 kata terucap) berdurasi
-   75,94 s — 24 s di atas target. Angka yang ditulis penuh ("seratus tiga
-   puluh delapan koma sembilan juta") memakan 7 kata untuk satu angka.
-
----
-
-## 4. TTS
-
-| Item | Nilai |
+| Parameter | Nilai |
 | --- | --- |
-| Engine | `edge-tts` |
-| Voice | `id-ID-ArdiNeural` |
-| Rate | −4% |
-| Laju terukur | ±2,0 kata/detik |
-| Format | MP3 24 kHz mono → AAC 192 kbps saat mux |
-| Per scene | `vo/s01.mp3` … `vo/s07.mp3` |
-| Panjang total | 51,10 s |
+| Anggaran MBG awal | Rp240 triliun |
+| Setelah dipangkas 75% | Rp60 triliun |
+| Dana dialihkan | **Rp180 triliun** |
+| Dibagi rata ke empat bidang | **Rp45 triliun per bidang** |
+
+Setiap angka program adalah seperempat dari anggaran program pada skenario
+180 triliun di `research.md`. Total per bidang tetap Rp45 triliun.
+
+---
+
+## 2. Subtitle per klip
+
+### c01 — Hook (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–1,95 | Bayangin kalau dana **MBG** dipangkas, |
+| 1,95–3,75 | terus duitnya **dialihin** ke program lain. |
+| 3,75–5,0 | Jadinya **gimana?** |
+
+Layar: `SIMULASI 2027 · ANGGARAN MBG`, `Rp240 T`, `anggaran MBG 2027`.
+
+### c02 — Pangkas 75% (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,0 | Anggap aja anggaran 2027 **Rp240 triliun**, |
+| 2,0–5,0 | kita pangkas **75 persen**. |
+
+Layar: `Rp240 T → Rp60 T`, badge `−75%`.
+
+### c03 — Rp180 T dibagi empat (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,2 | Ada **Rp180 triliun** yang bisa dialihkan. |
+| 2,2–5,0 | Dibagi rata: **Rp45 triliun** untuk empat bidang. |
+
+Layar: `Rp180 T` → `Rp45 T × 4`, empat peti bidang.
+
+### c04 — Infrastruktur: jalan (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | **Rp45 triliun** untuk infrastruktur. |
+| 2,5–5,0 | Sekitar **3.600 kilometer** jalan rusak bisa diperbaiki. |
+
+Layar: `±3.600 km`, `jalan rusak diperbaiki`.
+
+### c05 — Infrastruktur: rel & jembatan (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | Ditambah sekitar **210 kilometer** jalur rel, |
+| 2,5–5,0 | dan jembatan untuk desa-desa yang terisolasi. |
+
+Layar: `±210 km rel`, `jalur rel baru`.
+
+### c06 — Kesehatan: BPJS (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | **Rp45 triliun** untuk kesehatan. |
+| 2,5–5,0 | Iuran BPJS sekitar **35 juta orang** bisa dibiayai setahun. |
+
+Layar: `±35 juta orang`, `iuran BPJS setahun`.
+
+### c07 — Kesehatan: RS & Puskesmas (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | Setara sekitar **51 rumah sakit**, |
+| 2,5–5,0 | plus ribuan paket penguatan **Puskesmas** di daerah yang kekurangan layanan. |
+
+Layar: `±51 RS` → `±4.700`, `paket Puskesmas`.
+
+### c08 — Layanan publik: BRT & bus (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | **Rp45 triliun** untuk layanan publik. |
+| 2,5–5,0 | Sekitar **87 kilometer** jalur BRT dan hampir **2.000 bus**. |
+
+Layar: `±87 km BRT` → `±1.970 bus`.
+
+### c09 — Layanan publik: ruang publik (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | Ditambah **subsidi tiket**, |
+| 2,5–5,0 | Trotoar, taman kota, dan perpustakaan yang bisa dipakai semua orang. |
+
+Layar: `PELAYANAN PUBLIK · Rp45 T`.
+
+### c10 — Pendidikan: sekolah (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | **Rp45 triliun** untuk pendidikan dan perumahan. |
+| 2,5–5,0 | Sekitar **7.600 sekolah** bisa direvitalisasi. |
+
+Layar: `±7.600`, `sekolah · direvitalisasi`.
+
+### c11 — Perumahan (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | Sekitar **750 ribu** rumah tak layak huni diperbaiki, |
+| 2,5–5,0 | dan **200 ribu** rumah baru dibantu. |
+
+Layar: `750 ribu` → `200 ribu rumah`.
+
+### c12 — Penutup (0,0–5,0)
+
+| Waktu | Subtitle |
+| --- | --- |
+| 0,0–2,5 | Empat bidang, **Rp180 triliun**. |
+| 2,5–5,0 | Menurutmu, **mana yang paling dibutuhkan?** |
+
+Layar: `Rp45 T × 4`, `MBG Rp60 T`, tanda tanya emas.
+
+---
+
+## 3. Aturan baca
+
+- Angka besar adalah fokus utama; subtitle melengkapi, bukan mengulang.
+- `±` hanya muncul setelah hitungan berhenti.
+- Jangan menjumlahkan angka antar bidang: tiap bidang sudah memakai Rp45 T.
+- Sebut "setara", "sekitar", atau "bisa dibiayai" untuk target simulasi;
+  jangan menyebut "akan dibangun" atau "selesai 2027".
+- Tidak ada klaim politik atau janji pemerintah.
