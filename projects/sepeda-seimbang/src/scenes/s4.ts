@@ -1,9 +1,11 @@
-import { camera, effects, group, lights, material, primitives, scene } from "@aura3d/engine";
-import { COLORS, makeBike, torusRing } from "../bike";
+import { camera, effects, material, scene } from "@aura3d/engine";
+import { COLORS } from "../bike";
+import { makeHandRig, STICK_LEN } from "../stick";
 import {
   baseLights,
   clamp,
-  lerp,
+  groundGrid,
+  groundPlane,
   rad,
   smoothstep,
   stageEnvironment,
@@ -11,263 +13,128 @@ import {
 } from "../stage";
 import { ov } from "../overlay";
 
-export const duration = 12.0;
+export const duration = 8.0;
 
 type NodeHandle = {
   setRotation: (x: number, y: number, z: number) => NodeHandle;
   setPosition: (x: number, y: number, z: number) => NodeHandle;
-  setScale: (x: number, y: number, z: number) => NodeHandle;
+  setScale: (scale: number | [number, number, number]) => NodeHandle;
   setVisible: (visible: boolean) => NodeHandle;
+  setEmissive?: (color: string, intensity?: number) => NodeHandle;
 };
 type AppLike = { nodes: { require: (id: string) => NodeHandle }; camera?: { setPose: (p: object) => void } };
 
-const SPEED = 2.2;
-const U_MAX = SPEED * 12;
-const AMP = 1.9;
-const LAMBDA = 12;
-const K = (2 * Math.PI) / LAMBDA;
-const WEAVE_START = 2.4;
-const WHEELBASE = 1.1;
-
-type Pose = { x: number; z: number; yaw: number; lean: number; steer: number };
-
-function poseAt(u: number): Pose {
-  const env = smoothstep(clamp((u - WEAVE_START) / 2.4));
-  const phase = K * (u - WEAVE_START);
-  const x = AMP * Math.sin(phase) * env;
-  const x1 = AMP * Math.sin(K * (u + 0.02 - WEAVE_START)) * smoothstep(clamp((u + 0.02 - WEAVE_START) / 2.4));
-  const x0 = AMP * Math.sin(K * (u - 0.02 - WEAVE_START)) * smoothstep(clamp((u - 0.02 - WEAVE_START) / 2.4));
-  const dx = (x1 - x0) / 0.04;
-  const yaw = -Math.atan(dx);
-  const lean = 0.45 * K * K * AMP * Math.sin(phase) * env;
-  return { x, z: -u, yaw, lean, steer: lean * 1.2 };
-}
-
-function rearContact(p: Pose) {
-  const c = 0.55;
-  return [p.x + c * Math.sin(p.yaw), p.z + c * Math.cos(p.yaw)] as const;
-}
-
-function frontContact(p: Pose) {
-  const c = 0.55;
-  const fx = p.x - c * Math.sin(p.yaw) + 0.09 * Math.sin(p.steer) * Math.cos(p.yaw);
-  const fz = p.z - c * Math.cos(p.yaw);
-  return [fx, fz] as const;
-}
-
-function trailChunk(name: string, u0: number, u1: number, color: string, width: number, front: boolean) {
-  const mat = material.emissive({ color, emissive: color, emissiveIntensity: 2.0 });
-  const subs = 3;
-  const boxes = [];
-  for (let i = 0; i < subs; i += 1) {
-    const a = u0 + ((u1 - u0) * i) / subs;
-    const b = u0 + ((u1 - u0) * (i + 1)) / subs;
-    const pa = poseAt(a);
-    const pb = poseAt(b);
-    let xa = pa.x;
-    let za = pa.z;
-    let xb = pb.x;
-    let zb = pb.z;
-    if (front) {
-      [xa, za] = frontContact(pa);
-      [xb, zb] = frontContact(pb);
-    } else {
-      [xa, za] = rearContact(pa);
-      [xb, zb] = rearContact(pb);
-    }
-    const dx = xb - xa;
-    const dz = zb - za;
-    const len = Math.hypot(dx, dz) + 0.012;
-    boxes.push(
-      primitives.box({
-        name: `${name}-${i}`,
-        size: [width, 0.005, len],
-        position: [(xa + xb) / 2, 0.018, (za + zb) / 2],
-        rotation: [0, Math.atan2(dx, dz), 0],
-        material: mat,
-        castShadow: false,
-        receiveShadow: false,
-      }),
-    );
-  }
-  return group(name, boxes).runtime({ id: name, mutable: true });
-}
+const RIG_Y = 0.52;
+const TIP_START = 2.3;
+const TIP_END = 4.5;
+const SLIP_START = 4.95;
+const SLIP_END = 5.9;
+const COM = STICK_LEN * 0.5;
 
 export function build() {
-  const bike = makeBike({ name: "bikeS4", prefix: "S4", rider: true });
+  const rig = makeHandRig({ name: "stickRig", position: [0, RIG_Y, 0] });
 
-  const rearRing = torusRing("contact-rear", 0.085, 0.007, {
-    position: [0, 0.02, 0],
-    rotation: [Math.PI / 2, 0, 0],
-    material: material.emissive({ color: COLORS.cyan, emissive: COLORS.cyan, emissiveIntensity: 2.0 }),
-    radialSegments: 48,
-    tubularSegments: 5,
-  }).runtime({ id: "contactR", mutable: true });
-
-  const frontRing = torusRing("contact-front", 0.085, 0.007, {
-    position: [0, 0.02, -WHEELBASE],
-    rotation: [Math.PI / 2, 0, 0],
-    material: material.emissive({ color: COLORS.amber, emissive: COLORS.amber, emissiveIntensity: 2.0 }),
-    radialSegments: 48,
-    tubularSegments: 5,
-  }).runtime({ id: "contactF", mutable: true });
-
-  const CHUNK = 0.5;
-  const CHUNKS = Math.ceil(U_MAX / CHUNK);
-  const trailRear: { id: string; u: number }[] = [];
-  const trailFront: { id: string; u: number }[] = [];
-  const trailParts = [];
-  for (let i = 0; i < CHUNKS; i += 1) {
-    const u0 = i * CHUNK;
-    const u1 = Math.min(U_MAX, (i + 1) * CHUNK);
-    const r = trailChunk(`trail-r-${i}`, u0, u1, COLORS.cyan, 0.06, false);
-    const f = trailChunk(`trail-f-${i}`, u0, u1, COLORS.amber, 0.028, true);
-    trailRear.push({ id: `trail-r-${i}`, u: u1 });
-    trailFront.push({ id: `trail-f-${i}`, u: u1 });
-    trailParts.push(r, f);
-  }
-
-  const stage = scene({ background: COLORS.bgTop })
-    .add(stageSky())
-    .add(stageEnvironment(0.62))
-    .addMany(baseLights({ key: 2.3, fill: 0.6, rim: 1.35 }))
-    .add(
-      lights.directional({
-        name: "under",
-        position: [0, -3, 2],
-        target: [0, 0.4, 0],
-        intensity: 0.35,
-        color: "#4A7DBF",
-      }),
-    )
-    .add(
-      primitives.plane({
-        name: "groundS4",
-        size: [90, 1, 90],
-        position: [0, 0, -22],
-        material: material.pbr({ color: COLORS.ground, roughness: 0.92 }),
-        receiveShadow: true,
-      }),
-    )
-    .addMany(trailParts)
-    .add(bike)
-    .add(rearRing)
-    .add(frontRing)
-    .add(effects.bloom({ intensity: 0.42, threshold: 0.85, scatter: 0.5 }))
-    .add(effects.vignette({ intensity: 0.24, smoothness: 0.46 }))
-    .camera(camera.perspective({ position: [1.7, 1.15, 3.6], target: [0, 0.78, -0.8], fov: 42 }));
-
-  // A sparse grid that covers the whole path.
-  const gridLines = [];
+  const floorMat = material.pbr({ color: "#0A1522", roughness: 0.95 });
   const gridMat = material.pbr({
-    color: COLORS.grid,
-    emissive: "#1D3354",
-    emissiveIntensity: 0.32,
-    roughness: 0.8,
+    color: "#2E4460",
+    emissive: "#1A3050",
+    emissiveIntensity: 0.22,
+    roughness: 0.9,
   });
-  for (let z = 8; z >= -54; z -= 2) {
-    gridLines.push(
-      primitives.box({
-        name: `gx-${z}`,
-        size: [80, 0.008, 0.014],
-        position: [0, 0.006, z],
-        material: gridMat,
-        castShadow: false,
-        receiveShadow: false,
+
+  const sceneB = scene({ background: "#070B12" })
+    .add(stageSky({ zenith: "#060B14", horizon: "#0B1626", ground: "#05080E" }))
+    .add(stageEnvironment(0.5))
+    .addMany(baseLights({ key: 2.1, fill: 0.5, rim: 1.45, rimColor: COLORS.cyan }))
+    .add(groundPlane("groundS4", 28, floorMat))
+    .add(groundGrid("gridS4", { x0: -5, x1: 5, z0: -4, z1: 4, material: gridMat }))
+    .add(rig)
+    .add(effects.bloom({ intensity: 0.5, threshold: 0.84, scatter: 0.52 }))
+    .add(effects.vignette({ intensity: 0.34, smoothness: 0.45 }))
+    .add(
+      effects.depthOfField({
+        focusDistance: 4.1,
+        fStop: 3.4,
+        focalLength: 55,
+        maxBlur: 7,
       }),
-    );
+    )
+    .camera(camera.perspective({ position: [1.55, 1.3, 4.05], target: [0.25, 0.72, 0], fov: 40 }));
+
+  function stickState(t: number) {
+    const u = clamp((t - TIP_START) / (TIP_END - TIP_START));
+    let angle = rad(1.0) + rad(66) * u ** 2.1;
+    if (t > TIP_START && t < TIP_START + 0.8) {
+      const d = t - TIP_START;
+      angle += rad(0.7) * Math.exp(-4.5 * d) * Math.sin(15 * d);
+    }
+    if (t > TIP_END && t < SLIP_START) {
+      const d = t - TIP_END;
+      angle += rad(1.2) * Math.exp(-5.0 * d) * Math.sin(13 * d);
+    }
+    const slip = smoothstep(clamp((t - SLIP_START) / (SLIP_END - SLIP_START)));
+    angle += rad(19) * slip;
+    const baseX = 0.24 * slip;
+    const baseY = 0.006 - (RIG_Y - 0.006) * slip;
+    return { angle, baseX, baseY, slip };
   }
-  for (let x = -24; x <= 24; x += 2) {
-    gridLines.push(
-      primitives.box({
-        name: `gz-${x}`,
-        size: [0.014, 0.008, 64],
-        position: [x, 0.006, -22],
-        material: gridMat,
-        castShadow: false,
-        receiveShadow: false,
-      }),
-    );
-  }
-  stage.add(group("gridS4", gridLines));
 
   function update(t: number, app: AppLike) {
-    const u = Math.min(U_MAX, SPEED * t);
-    const p = poseAt(u);
-    app.nodes.require("bikeS4").setPosition(p.x, 0, p.z);
-    app.nodes.require("bikeS4").setRotation(0, p.yaw, p.lean);
-    app.nodes.require("S4-steer").setRotation(0, p.steer, 0);
+    const { angle, baseX, baseY, slip } = stickState(t);
+    app.nodes.require("stickRig-stick").setPosition(baseX, baseY, 0).setRotation(0, 0, -angle);
 
-    const spin = -u / 0.34;
-    app.nodes.require("S4-rear-wheel").setRotation(spin, 0, 0);
-    app.nodes.require("S4-front-wheel").setRotation(spin, 0, 0);
+    const comX = baseX + COM * Math.sin(angle);
+    const comY = baseY + COM * Math.cos(angle);
+    const plant = 0.008;
+    const plumbH = Math.max(0.002, comY - plant);
+    app.nodes
+      .require("stickRig-plumb")
+      .setPosition(comX, plant + plumbH / 2, 0.022)
+      .setScale([1, plumbH, 1]);
+    const ballX = baseX + STICK_LEN * Math.sin(angle);
+    const ballY = baseY + STICK_LEN * Math.cos(angle);
+    app.nodes.require("stickRig-gravity").setPosition(ballX, ballY, 0.05);
 
-    app.nodes.require("contactR").setPosition(...rearContact(p), 0.02);
-    const [fx, fz] = frontContact(p);
-    app.nodes.require("contactF").setPosition(fx, 0.02, fz);
+    // The support ring turns red the moment the plumb leaves the palm.
+    const outside = Math.abs(comX) > 0.052;
+    app.nodes
+      .require("stickRig-ring")
+      .setEmissive?.(outside ? COLORS.red : "#EAF6FF", outside ? 1.9 : 1.2);
 
-    for (let i = 0; i < CHUNKS; i += 1) {
-      const rr = trailRear[i]!;
-      const ff = trailFront[i]!;
-      app.nodes.require(rr.id).setVisible(rr.u <= u + 0.05);
-      app.nodes.require(ff.id).setVisible(ff.u <= u + 0.55);
-    }
+    // Once the stick has left the hand, the annotations belong to the palm.
+    const gone = slip > 0.6;
+    app.nodes.require("stickRig-plumb").setVisible(!gone);
+    app.nodes.require("stickRig-gravity").setVisible(!gone);
 
-    // Rear 3/4 chase -> side tracking -> near-overhead pass that reveals the S.
-    const side = smoothstep(clamp((t - 2.6) / 2.0));
-    const top = smoothstep(clamp((t - 7.6) / 2.4));
-    const baseX = p.x + lerp(2.9, 4.6, side);
-    const baseY = lerp(1.3, 1.45, side);
-    const baseZ = p.z + lerp(4.6, 0.4, side);
-    const pos: [number, number, number] = [
-      lerp(baseX, p.x + 0.5, top),
-      lerp(baseY, 17.0, top),
-      lerp(baseZ, p.z + 14.0, top),
-    ];
-    const target: [number, number, number] = [
-      lerp(p.x, p.x * 0.2, top),
-      lerp(lerp(0.78, 0.7, side), 0, top),
-      lerp(p.z - lerp(0.8, 0.1, side), p.z + 6.5, top),
-    ];
+    const fall = smoothstep(clamp((t - 2.0) / 3.9));
     app.camera?.setPose({
-      position: pos,
-      target,
-      fov: lerp(42, 46, top),
-      roll: -p.lean * 0.35 * (1 - top),
+      position: [1.55 - 0.12 * fall, 1.3 - 0.04 * fall, 4.05 - 0.2 * fall],
+      target: [0.25 + 0.08 * fall, 0.72, 0],
+      fov: 40,
     });
   }
 
   function overlay(t: number) {
-    ov.corner("SETIR MENGEJAR MIRING", clamp((t - 0.3) / 0.4) * 0.8);
+    ov.corner("TANGAN DIAM", clamp((t - 0.3) / 0.4) * 0.8);
     ov.divider(0);
-    ov.speedo(5.4, clamp((t - 0.5) / 0.4) * clamp((8.2 - t) / 0.4), true);
-    ov.scope([], 0);
-    ov.callout("a", "kontak belakang", clamp((t - 8.8) / 0.4) * 0.95, 60, 220, COLORS.cyan);
-    ov.callout("b", "kontak depan", clamp((t - 9.3) / 0.4) * 0.95, 60, 320, COLORS.amber);
+    ov.hud("left", "", 0);
+    ov.hud("right", "", 0);
+    ov.callout("a", "", 0, 0, 0);
+    ov.callout("b", "✕  jatuh", clamp((t - 4.3) / 0.4) * clamp((7.55 - t) / 0.3), 60, 1330, COLORS.red);
     ov.callout("c", "", 0, 0, 0);
 
-    if (t < 4.0) {
+    if (t < 4.3) {
       ov.sub(
-        [["Saat melaju, sepeda bisa "], ["miring", COLORS.cyan], [" tanpa jatuh."]],
-        clamp((t - 0.8) / 0.3) * clamp((4.0 - t) / 0.2),
-      );
-    } else if (t < 7.2) {
-      ov.sub(
-        [["Roda depan berbelok "], ["ke arah kemiringan.", COLORS.cyan]],
-        clamp((t - 4.0) / 0.3) * clamp((7.2 - t) / 0.2),
-      );
-    } else if (t < 10.2) {
-      ov.sub(
-        [["Titik tumpunya bergerak "], ["kembali di bawah pusat massa.", COLORS.green]],
-        clamp((t - 7.2) / 0.3) * clamp((10.2 - t) / 0.2),
+        [["Coba kamu berdirikan tongkat di "], ["telapak tangan", COLORS.yellow], [" kamu."]],
+        clamp((t - 0.8) / 0.3) * clamp((4.3 - t) / 0.2),
       );
     } else {
       ov.sub(
-        [["Jejak kedua roda membentuk "], ["huruf S.", COLORS.amber]],
-        clamp((t - 10.2) / 0.3) * clamp((11.7 - t) / 0.25),
+        [["Tangan kamu diam, tongkat akan "], ["jatuh.", COLORS.red]],
+        clamp((t - 4.3) / 0.3) * clamp((7.7 - t) / 0.25),
       );
     }
   }
 
-  return { views: [{ selector: "#app", scene: stage, update }], overlay, duration };
+  return { views: [{ selector: "#app", scene: sceneB, update }], overlay, duration };
 }

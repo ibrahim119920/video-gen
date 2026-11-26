@@ -18,7 +18,7 @@ export const duration = 6.0;
 type NodeHandle = {
   setRotation: (x: number, y: number, z: number) => NodeHandle;
   setPosition: (x: number, y: number, z: number) => NodeHandle;
-  setScale: (x: number, y: number, z: number) => NodeHandle;
+  setScale: (scale: number | [number, number, number]) => NodeHandle;
   setVisible: (visible: boolean) => NodeHandle;
   setOpacity?: (opacity: number) => NodeHandle;
 };
@@ -44,14 +44,14 @@ function leftView(): View {
 
   function update(t: number, app: AppLike) {
     // A held bike, nudged at 1 s: an inverted pendulum accelerating to the ground.
-    const u = clamp((t - 1.05) / 3.05);
+    const u = clamp((t - 1.05) / 2.3);
     let lean = rad(2) + rad(70) * u ** 2.55;
     if (t > 1.05) {
       const d = t - 1.05;
       lean += rad(1.1) * Math.exp(-5.2 * d) * Math.sin(16 * d);
     }
-    if (t > 4.1) {
-      const d = t - 4.1;
+    if (t > 3.35) {
+      const d = t - 3.35;
       lean += rad(2.2) * Math.exp(-5.5 * d) * Math.sin(15 * d);
     }
     app.nodes.require("bikeL").setRotation(0, 0, lean);
@@ -61,12 +61,12 @@ function leftView(): View {
     app.nodes.require("L-steer").setRotation(0, -lean * 0.22, 0);
 
     // Impact dust: expands and fades after the frame lands.
-    if (t < 4.12) {
+    if (t < 3.37) {
       app.nodes.require("dustL").setVisible(false);
     } else {
-      const k = clamp((t - 4.12) / 0.62);
+      const k = clamp((t - 3.37) / 0.62);
       const s = 0.45 + k * 2.4;
-      app.nodes.require("dustL").setVisible(true).setScale(s, 1, s);
+      app.nodes.require("dustL").setVisible(true).setScale([s, 1, s]);
       app.nodes.require("dustL").setOpacity?.(0.55 * (1 - k));
     }
 
@@ -135,7 +135,7 @@ export function build(panel = "left") {
       );
     } else {
       ov.sub(
-        [["Melaju, ia "], ["tegak sendiri.", COLORS.green]],
+        [["Melaju, ia "], ["tetap berdiri.", COLORS.green]],
         clamp((t - 3.35) / 0.22) * clamp((5.72 - t) / 0.18),
       );
     }

@@ -9,12 +9,14 @@ const loaders = {
   "5": () => import("./scenes/s5"),
   "6": () => import("./scenes/s6"),
   "7": () => import("./scenes/s7"),
+  "8": () => import("./scenes/s8"),
+  "9": () => import("./scenes/s9"),
 } as const;
 
 type NodeHandle = {
   setRotation: (x: number, y: number, z: number) => unknown;
   setPosition: (x: number, y: number, z: number) => unknown;
-  setScale: (x: number, y: number, z: number) => unknown;
+  setScale: (scale: number | [number, number, number]) => unknown;
 };
 
 export type CaptureApp = {

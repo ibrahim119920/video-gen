@@ -26,12 +26,14 @@ const skipEncode = Boolean(args.get("skip-encode"));
 
 const scenes = [
   { id: "1", slug: "c01_diam_bergerak", duration: 6, panels: ["left", "right"] },
-  { id: "2", slug: "c02_mitos_giroskop", duration: 10 },
-  { id: "3", slug: "c03_pendulum_terbalik", duration: 11 },
-  { id: "4", slug: "c04_setir_miring", duration: 12 },
-  { id: "5", slug: "c05_geometri_garpu", duration: 9 },
-  { id: "6", slug: "c06_terlalu_lambat", duration: 7 },
-  { id: "7", slug: "c07_gerak_penutup", duration: 5 },
+  { id: "2", slug: "c02_mitos_giroskop", duration: 6 },
+  { id: "3", slug: "c03_bukan_jawabannya", duration: 4 },
+  { id: "4", slug: "c04_tongkat_jatuh", duration: 8 },
+  { id: "5", slug: "c05_tongkat_tegak", duration: 8 },
+  { id: "6", slug: "c06_setir_miring", duration: 8 },
+  { id: "7", slug: "c07_miring_kiri", duration: 6 },
+  { id: "8", slug: "c08_miring_kanan", duration: 8 },
+  { id: "9", slug: "c09_moral", duration: 6 },
 ];
 
 const FPS = 30;
@@ -209,10 +211,10 @@ if (!skipEncode) {
     );
     console.log("\nfinal:", JSON.stringify(probe.streams?.[0] ?? {}, null, 2));
 
-    const times = [1.5, 8, 16.5, 25, 37.5, 45.5, 52, 57];
+    const times = [1.5, 8.5, 13.5, 20, 28, 36, 43, 50, 57];
     const filter =
       `select=${times.map((s) => `eq(n\\,${Math.round(s * FPS)})`).join("+")}` +
-      ",scale=270:480,tile=4x2";
+      ",scale=360:640,tile=3x3";
     run(ffmpeg, [
       "-y",
       "-i",

@@ -1,6 +1,7 @@
 import { camera, effects, group, lights, material, primitives, scene } from "@aura3d/engine";
 import { COLORS, makeBike, torusRing } from "../bike";
 import {
+  arrow3D,
   baseLights,
   clamp,
   lerp,
@@ -11,81 +12,185 @@ import {
 } from "../stage";
 import { ov } from "../overlay";
 
-export const duration = 7.0;
+export const duration = 8.0;
 
 type NodeHandle = {
   setRotation: (x: number, y: number, z: number) => NodeHandle;
   setPosition: (x: number, y: number, z: number) => NodeHandle;
-  setScale: (x: number, y: number, z: number) => NodeHandle;
-  setEmissive?: (color: string, intensity?: number) => NodeHandle;
+  setScale: (scale: number | [number, number, number]) => NodeHandle;
+  setVisible: (visible: boolean) => NodeHandle;
 };
 type AppLike = { nodes: { require: (id: string) => NodeHandle }; camera?: { setPose: (p: object) => void } };
 
-const V0 = 6.0;
-const DECEL = 0.8;
-const T_FALL = 5.0;
+const SPEED = 2.4;
+const U_MAX = SPEED * duration;
+const AMP = 1.6;
+const LAMBDA = 10.5;
+const K = (2 * Math.PI) / LAMBDA;
+const WEAVE_START = 1.0;
+const WHEELBASE = 1.1;
 
-function speedAt(t: number) {
-  return Math.max(0, V0 - DECEL * t);
+type Pose = { x: number; z: number; yaw: number; lean: number; steer: number };
+
+function poseAt(u: number): Pose {
+  const env = smoothstep(clamp((u - WEAVE_START) / 2.4));
+  const phase = K * (u - WEAVE_START);
+  const x = AMP * Math.sin(phase) * env;
+  const x1 = AMP * Math.sin(K * (u + 0.02 - WEAVE_START)) * smoothstep(clamp((u + 0.02 - WEAVE_START) / 2.4));
+  const x0 = AMP * Math.sin(K * (u - 0.02 - WEAVE_START)) * smoothstep(clamp((u - 0.02 - WEAVE_START) / 2.4));
+  const dx = (x1 - x0) / 0.04;
+  const yaw = -Math.atan(dx);
+  const lean = 0.34 * K * K * AMP * Math.sin(phase) * env;
+  return { x, z: -u, yaw, lean, steer: lean * 1.9 };
 }
 
-function travel(t: number) {
-  const tStop = Math.min(t, V0 / DECEL);
-  return V0 * tStop - 0.5 * DECEL * tStop * tStop;
+function rearContact(p: Pose) {
+  const c = 0.55;
+  return [p.x + c * Math.sin(p.yaw), p.z + c * Math.cos(p.yaw)] as const;
 }
 
-function wobbleAt(t: number) {
-  const growth = clamp((t - 1.2) / 4.0);
-  const amp = rad(1.2 + 6.5 * growth * growth);
-  const omega = 2.7 + 0.35 * t;
-  if (t < T_FALL) {
-    return amp * Math.sin(omega * t + 0.5);
+function frontContact(p: Pose) {
+  const c = 0.55;
+  const fx = p.x - c * Math.sin(p.yaw) + 0.09 * Math.sin(p.steer) * Math.cos(p.yaw);
+  const fz = p.z - c * Math.cos(p.yaw);
+  return [fx, fz] as const;
+}
+
+function trailChunk(name: string, u0: number, u1: number, color: string, width: number, front: boolean) {
+  const mat = material.emissive({ color, emissive: color, emissiveIntensity: 2.0 });
+  const subs = 3;
+  const boxes = [];
+  for (let i = 0; i < subs; i += 1) {
+    const a = u0 + ((u1 - u0) * i) / subs;
+    const b = u0 + ((u1 - u0) * (i + 1)) / subs;
+    const pa = poseAt(a);
+    const pb = poseAt(b);
+    let xa = pa.x;
+    let za = pa.z;
+    let xb = pb.x;
+    let zb = pb.z;
+    if (front) {
+      [xa, za] = frontContact(pa);
+      [xb, zb] = frontContact(pb);
+    } else {
+      [xa, za] = rearContact(pa);
+      [xb, zb] = rearContact(pb);
+    }
+    const dx = xb - xa;
+    const dz = zb - za;
+    const len = Math.hypot(dx, dz) + 0.012;
+    boxes.push(
+      primitives.box({
+        name: `${name}-${i}`,
+        size: [width, 0.005, len],
+        position: [(xa + xb) / 2, 0.018, (za + zb) / 2],
+        rotation: [0, Math.atan2(dx, dz), 0],
+        material: mat,
+        castShadow: false,
+        receiveShadow: false,
+      }),
+    );
   }
-  const before = amp * Math.sin(omega * T_FALL + 0.5);
-  const k = smoothstep(clamp((t - T_FALL) / 1.1));
-  return before + rad(52) * k ** 1.25 + rad(2) * Math.exp(-6 * (t - T_FALL)) * Math.sin(16 * (t - T_FALL));
+  return group(name, boxes).runtime({ id: name, mutable: true });
 }
 
-function steerAt(t: number) {
-  // The correction lags the lean as the speed bleeds off.
-  const growth = clamp((t - 1.2) / 4.0);
-  const amp = rad(2.0 + 9.0 * growth * growth);
-  const omega = 2.7 + 0.35 * t;
-  if (t < T_FALL) return amp * Math.sin(omega * t + 0.5 - 0.55);
-  return amp * Math.sin(omega * T_FALL + 0.5 - 0.55) * clamp((T_FALL + 1.2 - t) / 1.2);
+function hudHtml(leanDeg: number, steerDeg: number) {
+  const dir = Math.abs(steerDeg) < 1 ? "LURUS" : steerDeg > 0 ? "KIRI" : "KANAN";
+  return (
+    `<div style="min-width:250px;padding:14px 18px;border:1px solid rgba(120,160,200,.35);border-radius:10px;background:rgba(5,12,22,.72);box-shadow:0 0 24px rgba(0,0,0,.45)">` +
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:16px;letter-spacing:.14em;color:#9DB6CF">MIRING <b style="font-size:30px;color:#FFD166">${Math.round(Math.abs(leanDeg))}°</b></div>` +
+    `<div style="height:5px"></div>` +
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:16px;letter-spacing:.14em;color:#9DB6CF">SETIR <b style="font-size:30px;color:#35D0E8">${Math.round(Math.abs(steerDeg))}°</b></div>` +
+    `<div style="margin-top:7px;font-size:14px;letter-spacing:.2em;color:#7FE7B0">${dir}</div>` +
+    `</div>`
+  );
 }
 
 export function build() {
   const bike = makeBike({ name: "bikeS6", prefix: "S6", rider: true });
 
-  const rearRing = torusRing("contact-rear", 0.08, 0.006, {
-    position: [0, 0.02, 0.55],
+  const rearRing = torusRing("contact-rear", 0.085, 0.007, {
+    position: [0, 0.02, 0],
     rotation: [Math.PI / 2, 0, 0],
-    material: material.emissive({ color: COLORS.cyan, emissive: COLORS.cyan, emissiveIntensity: 1.6 }),
+    material: material.emissive({ color: COLORS.cyan, emissive: COLORS.cyan, emissiveIntensity: 2.0 }),
     radialSegments: 48,
     tubularSegments: 5,
   }).runtime({ id: "contactR", mutable: true });
 
-  const frontRing = torusRing("contact-front", 0.08, 0.006, {
-    position: [0, 0.02, -0.55],
+  const frontRing = torusRing("contact-front", 0.085, 0.007, {
+    position: [0, 0.02, -WHEELBASE],
     rotation: [Math.PI / 2, 0, 0],
-    material: material.emissive({ color: COLORS.amber, emissive: COLORS.amber, emissiveIntensity: 1.6 }),
+    material: material.emissive({ color: COLORS.amber, emissive: COLORS.amber, emissiveIntensity: 2.0 }),
     radialSegments: 48,
     tubularSegments: 5,
   }).runtime({ id: "contactF", mutable: true });
 
+  const steerArrow = group("steerArrow", [
+    arrow3D("steerArrowMesh", [0, 0, 0], [0, 0, -1], 0.3, COLORS.cyan, 0.008, {
+      headLength: 0.065,
+      emissiveIntensity: 1.0,
+    }),
+  ]).runtime({ id: "steerArrow", mutable: true });
+
+  const CHUNK = 0.4;
+  const CHUNKS = Math.ceil(U_MAX / CHUNK);
+  const trailRear: { id: string; u: number }[] = [];
+  const trailFront: { id: string; u: number }[] = [];
+  const trailParts = [];
+  for (let i = 0; i < CHUNKS; i += 1) {
+    const u0 = i * CHUNK;
+    const u1 = Math.min(U_MAX, (i + 1) * CHUNK);
+    const r = trailChunk(`trail-r-${i}`, u0, u1, COLORS.cyan, 0.06, false);
+    const f = trailChunk(`trail-f-${i}`, u0, u1, COLORS.amber, 0.028, true);
+    trailRear.push({ id: `trail-r-${i}`, u: u1 });
+    trailFront.push({ id: `trail-f-${i}`, u: u1 });
+    trailParts.push(r, f);
+  }
+
+  const stage = scene({ background: COLORS.bgTop })
+    .add(stageSky())
+    .add(stageEnvironment(0.62))
+    .addMany(baseLights({ key: 2.3, fill: 0.6, rim: 1.35 }))
+    .add(
+      lights.directional({
+        name: "under",
+        position: [0, -3, 2],
+        target: [0, 0.4, 0],
+        intensity: 0.35,
+        color: "#4A7DBF",
+      }),
+    )
+    .add(
+      primitives.plane({
+        name: "groundS6",
+        size: [90, 1, 90],
+        position: [0, 0, -22],
+        material: material.pbr({ color: COLORS.ground, roughness: 0.92 }),
+        receiveShadow: true,
+      }),
+    )
+    .addMany(trailParts)
+    .add(bike)
+    .add(rearRing)
+    .add(frontRing)
+    .add(steerArrow)
+    .add(effects.bloom({ intensity: 0.42, threshold: 0.85, scatter: 0.5 }))
+    .add(effects.vignette({ intensity: 0.24, smoothness: 0.46 }))
+    .camera(camera.perspective({ position: [1.7, 1.15, 3.6], target: [0, 0.78, -0.8], fov: 42 }));
+
+  // A sparse grid that covers the whole path.
+  const gridLines = [];
   const gridMat = material.pbr({
     color: COLORS.grid,
-    emissive: "#20364F",
-    emissiveIntensity: 0.34,
+    emissive: "#1D3354",
+    emissiveIntensity: 0.32,
     roughness: 0.8,
   });
-  const gridLines = [];
-  for (let z = 4; z >= -14; z -= 1) {
+  for (let z = 8; z >= -30; z -= 2) {
     gridLines.push(
       primitives.box({
         name: `gx-${z}`,
-        size: [20, 0.008, 0.014],
+        size: [80, 0.008, 0.014],
         position: [0, 0.006, z],
         material: gridMat,
         castShadow: false,
@@ -93,116 +198,97 @@ export function build() {
       }),
     );
   }
-  for (let x = -10; x <= 10; x += 1) {
+  for (let x = -24; x <= 24; x += 2) {
     gridLines.push(
       primitives.box({
         name: `gz-${x}`,
-        size: [0.014, 0.008, 20],
-        position: [x, 0.006, -5],
+        size: [0.014, 0.008, 64],
+        position: [x, 0.006, -22],
         material: gridMat,
         castShadow: false,
         receiveShadow: false,
       }),
     );
   }
-  const grid = group("gridS6", gridLines).runtime({ id: "gridS6", mutable: true });
-
-  const sceneB = scene({ background: "#070B12" })
-    .add(stageSky({ zenith: "#050A12", horizon: "#0C1728", ground: "#04070C" }))
-    .add(stageEnvironment(0.5))
-    .addMany(baseLights({ key: 2.1, fill: 0.5, rim: 1.2 }))
-    .add(
-      lights.directional({
-        name: "red-alert",
-        position: [-3, 2.2, -4],
-        target: [0, 0.9, 0],
-        intensity: 0.55,
-        color: "#FF4D5E",
-      }),
-    )
-    .add(
-      primitives.plane({
-        name: "groundS6",
-        size: [30, 1, 30],
-        position: [0, 0, -5],
-        material: material.pbr({ color: "#1A2638", roughness: 0.94 }),
-        receiveShadow: true,
-      }),
-    )
-    .add(grid)
-    .add(bike)
-    .add(rearRing)
-    .add(frontRing)
-    .add(effects.bloom({ intensity: 0.44, threshold: 0.84, scatter: 0.5 }))
-    .add(effects.vignette({ intensity: 0.3, smoothness: 0.45 }))
-    .camera(camera.perspective({ position: [1.15, 1.2, 4.5], target: [0, 0.78, 0], fov: 40 }));
+  stage.add(group("gridS6", gridLines));
 
   function update(t: number, app: AppLike) {
-    const lean = wobbleAt(t);
-    const steer = steerAt(t);
-    app.nodes.require("bikeS6").setRotation(0, 0, lean);
-    app.nodes.require("S6-steer").setRotation(0, steer, 0);
+    const u = Math.min(U_MAX, SPEED * t);
+    const p = poseAt(u);
+    app.nodes.require("bikeS6").setPosition(p.x, 0, p.z);
+    app.nodes.require("bikeS6").setRotation(0, p.yaw, p.lean);
+    app.nodes.require("S6-steer").setRotation(0, p.steer, 0);
 
-    const spin = -travel(t) / 0.34;
+    const spin = -u / 0.34;
     app.nodes.require("S6-rear-wheel").setRotation(spin, 0, 0);
     app.nodes.require("S6-front-wheel").setRotation(spin, 0, 0);
-    app.nodes.require("gridS6").setPosition(0, 0, travel(t) % 1);
 
-    // Contact rings slide with the tiny sideways drift of the tyres.
-    app.nodes.require("contactR").setPosition(-0.34 * Math.sin(lean), 0.02, 0.55);
-    app.nodes.require("contactF").setPosition(-0.34 * Math.sin(lean), 0.02, -0.55);
+    app.nodes.require("contactR").setPosition(...rearContact(p), 0.02);
+    const [fx, fz] = frontContact(p);
+    app.nodes.require("contactF").setPosition(fx, 0.02, fz);
+    app.nodes.require("steerArrow").setPosition(fx, 0.03, fz).setRotation(0, p.yaw + p.steer, 0);
 
-    // The bike falls toward -X. Watch it across the frame from a rear 3/4.
-    const fall = smoothstep(clamp((t - T_FALL) / 1.1));
+    for (let i = 0; i < CHUNKS; i += 1) {
+      const rr = trailRear[i]!;
+      const ff = trailFront[i]!;
+      app.nodes.require(rr.id).setVisible(rr.u <= u + 0.05);
+      app.nodes.require(ff.id).setVisible(ff.u <= u + 0.55);
+    }
+
+    // Rear 3/4 -> side tracking -> high behind to reveal the S.
+    const side = smoothstep(clamp((t - 1.8) / 1.6));
+    const high = smoothstep(clamp((t - 5.0) / 2.4));
+    const baseX = p.x + lerp(2.7, 4.4, side);
+    const baseY = lerp(1.25, 1.35, side);
+    const baseZ = p.z + lerp(4.3, 0.9, side);
+    const pos: [number, number, number] = [
+      lerp(baseX, p.x * 0.7 + 2.0, high),
+      lerp(baseY, 3.9, high),
+      lerp(baseZ, p.z + 4.8, high),
+    ];
+    const target: [number, number, number] = [
+      lerp(p.x * 0.7, p.x * 0.25, high),
+      lerp(lerp(0.78, 0.7, side), 0.25, high),
+      lerp(p.z - lerp(0.8, 0.1, side), p.z + 0.8, high),
+    ];
     app.camera?.setPose({
-      position: [
-        lerp(1.15, 1.6, fall),
-        lerp(1.2, 0.9, fall),
-        lerp(4.5, 4.0, fall),
-      ],
-      target: [
-        lerp(0, -0.28, fall),
-        lerp(0.78, 0.46, fall),
-        0,
-      ],
-      fov: lerp(40, 43, fall),
-      roll: rad(2.5) * Math.sin(2.7 * t) * (1 - fall),
+      position: pos,
+      target,
+      fov: lerp(42, 48, high),
+      roll: -p.lean * 0.35 * (1 - high),
     });
+
+    const leanDeg = (p.lean * 180) / Math.PI;
+    const steerDeg = (p.steer * 180) / Math.PI;
+    ov.hud("left", hudHtml(leanDeg, steerDeg), clamp((t - 0.4) / 0.5) * clamp((7.6 - t) / 0.3));
   }
 
   function overlay(t: number) {
-    ov.corner("TERLALU LAMBAT", clamp((t - 0.3) / 0.4) * 0.8);
+    ov.corner("SETIR MENGEJAR MIRING", clamp((t - 0.3) / 0.4) * 0.8);
     ov.divider(0);
-    const v = speedAt(t);
-    ov.speedo(v, clamp((t - 0.4) / 0.4) * clamp((6.55 - t) / 0.3), v > 3.0);
+    ov.hud("right", "", 0);
+    ov.scope([], 0);
     ov.callout("a", "", 0, 0, 0);
-    ov.callout("b", "koreksi terlambat", clamp((t - 4.3) / 0.4) * clamp((6.4 - t) / 0.3), 60, 1330);
+    ov.callout("b", "", 0, 0, 0);
     ov.callout("c", "", 0, 0, 0);
 
-    const samples: number[] = [];
-    for (let i = 0; i < 44; i += 1) {
-      const tt = Math.max(0, t - 1.6 + (i / 43) * 1.6);
-      samples.push(wobbleAt(tt) / rad(50));
-    }
-    ov.scope(samples, clamp((t - 0.8) / 0.5), COLORS.red);
-
-    if (t < 3.2) {
+    if (t < 2.5) {
       ov.sub(
-        [["Melambat, sepeda jadi "], ["makin sulit dikoreksi.", COLORS.amber]],
-        clamp((t - 0.7) / 0.3) * clamp((3.2 - t) / 0.2),
+        [["Bagaimana dengan "], ["sepeda?", COLORS.cyan]],
+        clamp((t - 0.5) / 0.3) * clamp((2.5 - t) / 0.2),
       );
-    } else if (t < 5.8) {
+    } else if (t < 5.0) {
       ov.sub(
-        [["Ayunan setir makin "], ["lebar dan cepat.", COLORS.amber]],
-        clamp((t - 3.2) / 0.3) * clamp((5.8 - t) / 0.2),
+        [["Secara alami, setang dan "], ["ban depannya", COLORS.cyan]],
+        clamp((t - 2.5) / 0.3) * clamp((5.0 - t) / 0.2),
       );
     } else {
       ov.sub(
-        [["Koreksi tak lagi "], ["cukup.", COLORS.red]],
-        clamp((t - 5.8) / 0.3) * clamp((6.7 - t) / 0.25),
+        [["akan selalu belok mengikuti "], ["miringnya sepeda.", COLORS.amber]],
+        clamp((t - 5.0) / 0.3) * clamp((7.7 - t) / 0.25),
       );
     }
   }
 
-  return { views: [{ selector: "#app", scene: sceneB, update }], overlay, duration };
+  return { views: [{ selector: "#app", scene: stage, update }], overlay, duration };
 }

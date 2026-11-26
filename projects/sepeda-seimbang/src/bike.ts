@@ -158,10 +158,10 @@ function rider(prefix: string) {
   const footR: V3 = [0.11, 0.33, 0.12];
   const shL: V3 = [-0.16, 1.27, 0.04];
   const shR: V3 = [0.16, 1.27, 0.04];
-  const elL: V3 = [-0.20, 1.12, -0.16];
-  const elR: V3 = [0.20, 1.12, -0.16];
-  const handL: V3 = [-0.21, 1.00, -0.32];
-  const handR: V3 = [0.21, 1.00, -0.32];
+  const elL: V3 = [-0.20, 1.10, -0.17];
+  const elR: V3 = [0.20, 1.10, -0.17];
+  const handL: V3 = [-0.21, 0.925, -0.335];
+  const handR: V3 = [0.21, 0.925, -0.335];
 
   return group(
     `${prefix}-rider`,
@@ -194,6 +194,8 @@ function rider(prefix: string) {
       tube(`${prefix}-forearm-r`, elR, handR, 0.038, riderMat),
       ball(`${prefix}-elbow-l`, elL, 0.052, riderMat),
       ball(`${prefix}-elbow-r`, elR, 0.052, riderMat),
+      ball(`${prefix}-hand-l`, handL, 0.05, riderMat),
+      ball(`${prefix}-hand-r`, handR, 0.05, riderMat),
       // legs
       tube(`${prefix}-thigh-l`, hipL, kneeL, 0.062, riderMat),
       tube(`${prefix}-thigh-r`, hipR, kneeR, 0.062, riderMat),

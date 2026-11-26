@@ -20,14 +20,15 @@ import {
 } from "../stage";
 import { ov } from "../overlay";
 
-export const duration = 10.0;
+const MYTH_DURATION = 10.0;
+export const duration = 6.0;
 
 const LIFT = 0.45;
 
 type NodeHandle = {
   setRotation: (x: number, y: number, z: number) => NodeHandle;
   setPosition: (x: number, y: number, z: number) => NodeHandle;
-  setScale: (x: number, y: number, z: number) => NodeHandle;
+  setScale: (scale: number | [number, number, number]) => NodeHandle;
   setVisible: (visible: boolean) => NodeHandle;
 };
 type AppLike = { nodes: { require: (id: string) => NodeHandle }; camera?: { setPose: (p: object) => void } };
@@ -63,7 +64,7 @@ function glowWheel(prefix: string, color: string) {
   ]).runtime({ id: `${prefix}-wheel`, mutable: true });
 }
 
-export function build() {
+export function buildMyth() {
   const front = group(
     "frontRig",
     [
@@ -172,7 +173,7 @@ export function build() {
 
     // Angular momentum arrow appears after the wheel is established.
     const lp = clamp((t - 2.2) / 0.7);
-    app.nodes.require("Lgroup").setVisible(lp > 0.01).setScale(lp, lp, lp);
+    app.nodes.require("Lgroup").setVisible(lp > 0.01).setScale([lp, lp, lp]);
 
     // Counter-rotating second wheel slides onto the axle at 4.8 s.
     const cIn = easeInOut(clamp((t - 4.8) / 1.0));
@@ -180,43 +181,45 @@ export function build() {
     app.nodes.require("G-wheel").setPosition(cx, LIFT + WHEEL_R, -0.54);
     app.nodes.require("G-wheel").setRotation(2 * Math.PI * 1.2 * t, 0, 0);
     const cp = clamp((t - 5.5) / 0.8);
-    app.nodes.require("Cgroup").setVisible(cp > 0.01).setScale(cp, cp, cp);
+    app.nodes.require("Cgroup").setVisible(cp > 0.01).setScale([cp, cp, cp]);
 
     // Once both are present, collapse both arrows into "Net L ~ 0".
     const collapse = easeInOut(clamp((t - 7.6) / 1.0));
     if (collapse > 0) {
       const s = 1 - collapse * 0.75;
-      app.nodes.require("Lgroup").setScale(s, s, s);
-      app.nodes.require("Cgroup").setScale(s, s, s);
+      app.nodes.require("Lgroup").setScale([s, s, s]);
+      app.nodes.require("Cgroup").setScale([s, s, s]);
     }
   }
 
-  function overlay(t: number) {
-    ov.corner("MITOS GIROSKOP", clamp((t - 0.25) / 0.4) * 0.8);
-    ov.divider(0);
+  return { views: [{ selector: "#app", scene: sceneB, update }], duration: MYTH_DURATION };
+}
 
-    if (t < 4.8) {
-      ov.sub(
-        [["Banyak orang mengira rahasianya "], ["efek giroskop", COLORS.cyan], [" dari roda yang berputar."]],
-        clamp((t - 0.7) / 0.3) * clamp((4.8 - t) / 0.2),
-      );
-    } else if (t < 7.4) {
-      ov.sub(
-        [["Padahal, sepeda yang efek giroskopnya "], ["sudah dinetralkan", COLORS.amber], [" pun tetap bisa diseimbangkan."]],
-        clamp((t - 4.8) / 0.3) * clamp((7.4 - t) / 0.2),
-      );
-    } else {
-      ov.sub(
-        [["Giroskop "], ["bukan", COLORS.red], [" satu-satunya jawaban."]],
-        clamp((t - 7.4) / 0.3) * clamp((9.7 - t) / 0.25),
-      );
-    }
+function mythOverlay(t: number) {
+  ov.corner("MITOS GIROSKOP", clamp((t - 0.25) / 0.4) * 0.8);
+  ov.divider(0);
+  ov.hud("left", "", 0);
+  ov.hud("right", "", 0);
+  ov.scope([], 0);
 
-    const net = clamp((t - 7.2) / 0.5);
-    ov.callout("a", "Net L ≈ 0", net, 60, 1440);
-    const chk = clamp((t - 7.9) / 0.4);
-    ov.callout("c", "✓  tetap seimbang", chk, 60, 1540);
+  if (t < 3.25) {
+    ov.sub(
+      [["Banyak orang mengira rahasianya"]],
+      clamp((t - 0.7) / 0.3) * clamp((3.25 - t) / 0.2),
+    );
+  } else {
+    ov.sub(
+      [["efek giroskop", COLORS.cyan], [" dari roda yang berputar."]],
+      clamp((t - 3.25) / 0.3) * clamp((5.75 - t) / 0.25),
+    );
   }
 
-  return { views: [{ selector: "#app", scene: sceneB, update }], overlay, duration };
+  ov.callout("a", "", 0, 0, 0);
+  ov.callout("b", "", 0, 0, 0);
+  ov.callout("c", "", 0, 0, 0);
+}
+
+export function build() {
+  const base = buildMyth();
+  return { views: base.views, overlay: mythOverlay, duration };
 }
